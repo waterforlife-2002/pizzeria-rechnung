@@ -164,34 +164,32 @@
 
         #invoice {
             background: white;
-            padding: 12mm;
-            width: 210mm;
-            height: 297mm;
+            width: 100%;
+            max-width: 750px;
             margin: 0 auto;
+            padding: 40px;
             transform-origin: top center;
-            position: relative;
-            overflow: hidden;
         }
 
         .invoice-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10mm;
-            padding-bottom: 6mm;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
             border-bottom: 2px solid #667eea;
         }
 
         .business-info h1 {
             color: #667eea;
-            font-size: 16px;
-            margin-bottom: 3mm;
+            font-size: 20px;
+            margin-bottom: 10px;
             font-weight: 700;
         }
 
         .business-info p {
             color: #666;
-            font-size: 8px;
-            line-height: 1.5;
+            font-size: 11px;
+            line-height: 1.6;
         }
 
         .invoice-meta {
@@ -200,25 +198,25 @@
 
         .invoice-meta h2 {
             color: #333;
-            font-size: 14px;
-            margin-bottom: 3mm;
+            font-size: 18px;
+            margin-bottom: 10px;
             font-weight: 700;
         }
 
         .invoice-meta p {
             color: #666;
-            font-size: 8px;
-            margin: 1.5mm 0;
+            font-size: 11px;
+            margin: 5px 0;
         }
 
         .client-section {
-            margin-bottom: 10mm;
+            margin-bottom: 25px;
         }
 
         .client-section h3 {
             color: #667eea;
-            font-size: 9px;
-            margin-bottom: 2.5mm;
+            font-size: 11px;
+            margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 700;
@@ -226,22 +224,22 @@
 
         .client-info {
             background: #f8f9ff;
-            padding: 6mm;
-            border-radius: 3mm;
+            padding: 15px;
+            border-radius: 6px;
             border-left: 3px solid #667eea;
         }
 
         .client-info p {
-            margin: 2mm 0;
+            margin: 5px 0;
             color: #333;
-            font-size: 8px;
-            line-height: 1.4;
+            font-size: 11px;
+            line-height: 1.5;
         }
 
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 8mm 0;
+            margin: 25px 0;
         }
 
         .items-table thead {
@@ -250,17 +248,17 @@
         }
 
         .items-table th {
-            padding: 5mm;
+            padding: 10px;
             text-align: left;
-            font-size: 8px;
+            font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
         }
 
         .items-table td {
-            padding: 5mm;
+            padding: 10px;
             border-bottom: 1px solid #e0e0e0;
-            font-size: 8px;
+            font-size: 10px;
             color: #333;
         }
 
@@ -277,17 +275,17 @@
         }
 
         .totals-section {
-            margin-top: 10mm;
-            padding-top: 6mm;
+            margin-top: 25px;
+            padding-top: 15px;
             border-top: 2px solid #e0e0e0;
         }
 
         .total-row {
             display: flex;
             justify-content: space-between;
-            padding: 4mm 6mm;
-            margin: 2mm 0;
-            border-radius: 3mm;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 4px;
         }
 
         .total-row.subtotal {
@@ -301,53 +299,50 @@
         .total-row.grand-total {
             background: #667eea;
             color: white;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 700;
         }
 
         .payment-info {
             background: #e8f5e9;
-            padding: 5mm;
-            border-radius: 3mm;
-            margin-top: 8mm;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 20px;
             border-left: 3px solid #48bb78;
         }
 
         .payment-info h4 {
             color: #2e7d32;
-            margin-bottom: 3mm;
-            font-size: 8px;
+            margin-bottom: 8px;
+            font-size: 10px;
             font-weight: 600;
         }
 
         .payment-info p {
             color: #1b5e20;
-            font-size: 7px;
-            margin: 1.5mm 0;
-            line-height: 1.4;
+            font-size: 10px;
+            margin: 4px 0;
+            line-height: 1.5;
         }
 
         .footer-section {
-            position: absolute;
-            bottom: 10mm;
-            left: 12mm;
-            right: 12mm;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
             text-align: center;
             color: #666;
-            font-size: 7px;
-            border-top: 1px solid #e0e0e0;
-            padding-top: 4mm;
+            font-size: 9px;
         }
 
         .footer-section p {
-            margin: 2mm 0;
-            line-height: 1.4;
+            margin: 5px 0;
+            line-height: 1.5;
         }
 
         .footer-section .legal {
-            font-size: 6px;
+            font-size: 8px;
             color: #999;
-            margin-top: 3mm;
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -501,21 +496,6 @@
         // Initiales Update
         updateInvoice();
 
-        // Skalierung der Vorschau anpassen
-        function adjustPreviewScale() {
-            const invoice = document.getElementById('invoice');
-            const previewPanel = document.querySelector('.preview-panel');
-            const panelWidth = previewPanel.clientWidth - 40;
-            
-            // A4 Breite ist 210mm ≈ 794px bei 96dpi
-            const scale = Math.min(1, panelWidth / 794);
-            invoice.style.transform = `scale(${scale})`;
-        }
-
-        // Beim Laden und bei Fenstergröı¿½enanderung
-        window.addEventListener('load', adjustPreviewScale);
-        window.addEventListener('resize', adjustPreviewScale);
-
         function addItem() {
             const container = document.getElementById('itemsContainer');
             const newItem = document.createElement('div');
@@ -529,7 +509,6 @@
             `;
             container.appendChild(newItem);
             updateInvoice();
-            setTimeout(adjustPreviewScale, 100);
         }
 
         function removeItem(btn) {
@@ -608,31 +587,25 @@
             const element = document.getElementById('invoice');
             const invoiceNumber = document.getElementById('invoiceNumber').value || 'rechnung';
             
-            // Temporar Transform entfernen fur sauberen Export
-            const originalTransform = element.style.transform;
-            element.style.transform = 'none';
-            
             const opt = {
-                margin: 0,
+                margin: 10,
                 filename: `Rechnung_${invoiceNumber}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
                     scale: 2,
                     useCORS: true,
-                    logging: false
+                    logging: true
                 },
                 jsPDF: { 
                     unit: 'mm', 
                     format: 'a4', 
                     orientation: 'portrait',
                     compress: true
-                }
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Transform wiederherstellen
-                element.style.transform = originalTransform;
-            });
+            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>
