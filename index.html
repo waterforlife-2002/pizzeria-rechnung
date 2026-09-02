@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rechnungsgenerator – Pizza Express City Weingarten</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root { --accent:#b42318; --accent-dark:#8d1b13; --ink:#202124; --muted:#667085; --line:#d0d5dd; --paper:#fff; --bg:#f2f4f7; --error:#b42318; }
     * { box-sizing:border-box; }
@@ -30,8 +32,8 @@
     button { border:0; cursor:pointer; border-radius:7px; padding:10px 14px; font:700 14px Arial,sans-serif; }
     .remove { height:35px; background:#fee4e2; color:#b42318; padding:8px; }
     .add { margin-top:3px; color:#175cd3; background:#eff8ff; }
-    .print { margin-top:18px; width:100%; background:var(--accent); color:#fff; font-size:15px; }
-    .print:hover { background:var(--accent-dark); }
+    .pdf { margin-top:18px; width:100%; background:var(--accent); color:#fff; font-size:15px; }
+    .pdf:hover { background:var(--accent-dark); }
     .note { color:var(--muted); font-size:12px; line-height:1.45; margin:10px 0 0; }
     .error-message { display:none; margin:12px 0 0; padding:10px 12px; border-radius:7px; color:#912018; background:#fee4e2; font-size:13px; font-weight:700; line-height:1.4; }
     .error-message.visible { display:block; }
@@ -86,18 +88,6 @@
       .invoice-scale { width:100%; height:auto; margin:0; overflow:hidden; }
       #invoice { margin:0; }
     }
-
-    @page { size:A4 portrait; margin:20mm 12mm 12mm 12mm; }
-    @media print {
-      body { background:#fff; }
-      .form-panel, .preview-label { display:none !important; }
-      .app, .preview-panel { display:block; margin:0; padding:0; box-shadow:none; overflow:visible; }
-      .invoice-scale { display:contents; width:auto !important; height:auto !important; overflow:visible; }
-      #invoice { width:auto !important; min-height:0; margin:0; padding:0; box-shadow:none; transform:none !important; }
-      .invoice-head, .recipient, .totals, .payment, .invoice-footer { break-inside:avoid; }
-      thead { display:table-header-group; }
-      tr { break-inside:avoid; }
-    }
   </style>
 </head>
 <body>
@@ -119,9 +109,9 @@
       <div class="field" style="margin-top:20px"><label for="discount">Rabatt auf die Gesamtsumme in % (optional)</label><input id="discount" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="z. B. 10" autocomplete="off"></div>
       <div class="field"><label for="terms">Zahlungshinweis</label><textarea id="terms">Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen ohne Abzug.</textarea></div>
       <div class="field"><label for="notes">Hinweis / Fußzeile</label><textarea id="notes">Vielen Dank für Ihre Bestellung. Guten Appetit!</textarea></div>
-      <button class="print" type="button" id="printPdf">PDF erstellen / drucken</button>
+      <button class="pdf" type="button" id="downloadPdf">PDF herunterladen</button>
       <div class="error-message" id="validationMessage" role="alert" aria-live="polite"></div>
-      <p class="note">Felder mit <strong>*</strong> sind Pflichtfelder. Im Druckfenster als Ziel <strong>„Als PDF speichern“</strong> auswählen. Dort bitte zusätzlich <strong>„Kopf- und Fußzeilen“</strong> deaktivieren.</p>
+      <p class="note">Die PDF wird direkt erstellt und heruntergeladen. Es öffnet sich kein Druckdialog; daher erscheinen weder URL noch Druckdatum auf der Rechnung.</p>
     </section>
 
     <section class="panel preview-panel">
@@ -151,6 +141,7 @@
 
     function escapeHtml(value) { const el = document.createElement('span'); el.textContent = value || ''; return el.innerHTML; }
     function textWithBreaks(value) { return (value || '—').replace(/\n/g, '<br>'); }
+    function inputNumber(value) { return Number(String(value).replace(',', '.')) || 0; }
 
     function itemRow() {
       const id = ++itemCounter;
@@ -165,45 +156,66 @@
       row.querySelectorAll('input, select').forEach(el => { el.addEventListener('input', update); el.addEventListener('change', update); });
       row.querySelector('.remove').addEventListener('click', () => { if (items.children.length > 1) { row.remove(); update(); } });
       items.appendChild(row);
-      // Nach dem Einfügen nochmals leeren, damit mobile Browser keine frühere Position wiederherstellen.
       requestAnimationFrame(() => { row.querySelector('.desc').value = ''; row.querySelector('.qty').value = '1'; row.querySelector('.gross').value = ''; row.querySelector('.tax').value = '19'; });
     }
 
+    function getInvoiceData() {
+      const lineItems = [...items.querySelectorAll('.item-row')].map(row => {
+        const desc = row.querySelector('.desc').value.trim() || '—';
+        const qty = inputNumber(row.querySelector('.qty').value);
+        const grossUnit = inputNumber(row.querySelector('.gross').value);
+        const rate = inputNumber(row.querySelector('.tax').value);
+        const gross = qty * grossUnit;
+        const net = rate > 0 ? gross / (1 + rate / 100) : gross;
+        return { desc, qty, rate, gross, net, tax:gross - net };
+      });
+      const netBeforeDiscount = lineItems.reduce((sum, item) => sum + item.net, 0);
+      const taxBeforeDiscount = lineItems.reduce((sum, item) => sum + item.tax, 0);
+      const grossBeforeDiscount = lineItems.reduce((sum, item) => sum + item.gross, 0);
+      const rawDiscount = inputNumber(document.getElementById('discount').value);
+      const discountRate = Math.min(100, Math.max(0, rawDiscount));
+      const factor = 1 - discountRate / 100;
+      return {
+        number:document.getElementById('number').value.trim() || '—',
+        date:dateDE(document.getElementById('date').value),
+        due:dateDE(document.getElementById('due').value),
+        customer:document.getElementById('customer').value.trim() || '—',
+        address:document.getElementById('address').value.trim() || '—',
+        email:document.getElementById('email').value.trim(),
+        terms:document.getElementById('terms').value.trim(),
+        notes:document.getElementById('notes').value.trim(),
+        lineItems,
+        discountRate,
+        discountGross:grossBeforeDiscount * discountRate / 100,
+        netTotal:netBeforeDiscount * factor,
+        taxTotal:taxBeforeDiscount * factor,
+        grossTotal:grossBeforeDiscount * factor
+      };
+    }
+
     function update() {
-      document.getElementById('p-number').textContent = document.getElementById('number').value || '—';
-      document.getElementById('p-date').textContent = dateDE(document.getElementById('date').value);
-      document.getElementById('p-due').textContent = dateDE(document.getElementById('due').value);
-      document.getElementById('p-customer').textContent = document.getElementById('customer').value || '—';
-      document.getElementById('p-address').innerHTML = textWithBreaks(escapeHtml(document.getElementById('address').value));
-      document.getElementById('p-email').textContent = document.getElementById('email').value;
-      document.getElementById('p-terms').textContent = document.getElementById('terms').value;
-      document.getElementById('p-notes').innerHTML = textWithBreaks(escapeHtml(document.getElementById('notes').value));
-      let netBeforeDiscount = 0, taxBeforeDiscount = 0, grossBeforeDiscount = 0;
+      const data = getInvoiceData();
+      document.getElementById('p-number').textContent = data.number;
+      document.getElementById('p-date').textContent = data.date;
+      document.getElementById('p-due').textContent = data.due;
+      document.getElementById('p-customer').textContent = data.customer;
+      document.getElementById('p-address').innerHTML = textWithBreaks(escapeHtml(data.address));
+      document.getElementById('p-email').textContent = data.email;
+      document.getElementById('p-terms').textContent = data.terms;
+      document.getElementById('p-notes').innerHTML = textWithBreaks(escapeHtml(data.notes));
       const tbody = document.getElementById('p-items'); tbody.innerHTML = '';
-      [...items.querySelectorAll('.item-row')].forEach(row => {
-        const desc = row.querySelector('.desc').value || '—';
-        const qty = Number(row.querySelector('.qty').value) || 0;
-        const grossUnit = Number(row.querySelector('.gross').value) || 0;
-        const rate = Number(row.querySelector('.tax').value) || 0;
-        const lineGross = qty * grossUnit;
-        const lineNet = rate > 0 ? lineGross / (1 + rate / 100) : lineGross;
-        const lineTax = lineGross - lineNet;
-        netBeforeDiscount += lineNet; taxBeforeDiscount += lineTax; grossBeforeDiscount += lineGross;
+      data.lineItems.forEach(item => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${escapeHtml(desc)}</td><td>${qty}</td><td class="right">${euro.format(lineNet)}</td><td class="right">${rate.toLocaleString('de-DE')} %</td><td class="right"><b>${euro.format(lineGross)}</b></td>`;
+        tr.innerHTML = `<td>${escapeHtml(item.desc)}</td><td>${item.qty}</td><td class="right">${euro.format(item.net)}</td><td class="right">${item.rate.toLocaleString('de-DE')} %</td><td class="right"><b>${euro.format(item.gross)}</b></td>`;
         tbody.appendChild(tr);
       });
-      const rawDiscount = Number(document.getElementById('discount').value);
-      const discountRate = Number.isFinite(rawDiscount) ? Math.min(100, Math.max(0, rawDiscount)) : 0;
-      const discountGross = grossBeforeDiscount * discountRate / 100;
-      const factor = 1 - discountRate / 100;
-      document.getElementById('p-net').textContent = euro.format(netBeforeDiscount * factor);
-      document.getElementById('p-tax').textContent = euro.format(taxBeforeDiscount * factor);
-      document.getElementById('p-total').textContent = euro.format(grossBeforeDiscount * factor);
+      document.getElementById('p-net').textContent = euro.format(data.netTotal);
+      document.getElementById('p-tax').textContent = euro.format(data.taxTotal);
+      document.getElementById('p-total').textContent = euro.format(data.grossTotal);
       const discountLine = document.getElementById('discountLine');
-      discountLine.hidden = discountRate === 0;
-      document.getElementById('p-discount-label').textContent = `Rabatt (${discountRate.toLocaleString('de-DE')} %)`;
-      document.getElementById('p-discount').textContent = `−${euro.format(discountGross)}`;
+      discountLine.hidden = data.discountRate === 0;
+      document.getElementById('p-discount-label').textContent = `Rabatt (${data.discountRate.toLocaleString('de-DE')} %)`;
+      document.getElementById('p-discount').textContent = `−${euro.format(data.discountGross)}`;
       fitPreview();
     }
 
@@ -215,7 +227,7 @@
       const address = document.getElementById('address');
       if (!customer.value.trim()) { customer.classList.add('invalid'); errors.push('Bitte Besteller / Kunde eingeben.'); }
       if (!address.value.trim()) { address.classList.add('invalid'); errors.push('Bitte die Adresse eingeben.'); }
-      const completeItem = [...items.querySelectorAll('.item-row')].some(row => row.querySelector('.desc').value.trim() && Number(row.querySelector('.qty').value) >= 1 && Number(row.querySelector('.gross').value) > 0);
+      const completeItem = [...items.querySelectorAll('.item-row')].some(row => row.querySelector('.desc').value.trim() && inputNumber(row.querySelector('.qty').value) >= 1 && inputNumber(row.querySelector('.gross').value) > 0);
       if (!completeItem) { const first = items.querySelector('.item-row'); if (first) first.querySelectorAll('.desc, .qty, .gross').forEach(el => el.classList.add('invalid')); errors.push('Bitte mindestens eine vollständige Position mit Bezeichnung, Menge und Brutto-Preis eingeben.'); }
       if (errors.length) { const msg = document.getElementById('validationMessage'); msg.textContent = errors.join(' '); msg.classList.add('visible'); document.querySelector('.invalid')?.focus(); return false; }
       return true;
@@ -228,12 +240,102 @@
       else { invoice.style.transform = 'none'; scaleBox.style.height = `${invoice.offsetHeight}px`; }
     }
 
+    function drawWrappedText(doc, text, x, y, maxWidth, lineHeight) {
+      const lines = doc.splitTextToSize(text || '', maxWidth);
+      doc.text(lines, x, y);
+      return y + Math.max(1, lines.length) * lineHeight;
+    }
+
+    function generatePdf() {
+      update();
+      if (!validateInvoice()) return;
+      if (!window.jspdf || !window.jspdf.jsPDF) { alert('Die PDF-Bibliothek konnte nicht geladen werden. Bitte Internetverbindung prüfen und die Seite neu laden.'); return; }
+      const data = getInvoiceData();
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4', compress:true });
+      const red = [180, 35, 24];
+      const dark = [29, 41, 57];
+      const muted = [102, 112, 133];
+      const margin = 12;
+      const pageWidth = 210;
+      const contentWidth = pageWidth - margin * 2;
+      const pageBottom = 285;
+      let y = 20;
+
+      doc.setTextColor(...red); doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+      doc.text('Pizza Express City Weingarten', margin, y);
+      doc.setTextColor(...dark); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(['Lägelerstrasse 33-1', '88250 Weingarten', 'Tel.: 0751-5692645'], margin, y + 6);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text('RECHNUNG', pageWidth - margin, y, { align:'right' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(`Nr.: ${data.number}`, pageWidth - margin, y + 6, { align:'right' });
+      doc.text(`Datum: ${data.date}`, pageWidth - margin, y + 11, { align:'right' });
+      doc.text(`Fällig: ${data.due}`, pageWidth - margin, y + 16, { align:'right' });
+      y += 25;
+      doc.setDrawColor(...red); doc.setLineWidth(0.8); doc.line(margin, y, pageWidth - margin, y);
+      y += 12;
+      doc.setTextColor(...red); doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text('RECHNUNG AN', margin, y);
+      y += 4;
+      const addressLines = [data.customer, ...data.address.split('\n'), ...(data.email ? [data.email] : [])];
+      const boxHeight = Math.max(23, 8 + addressLines.length * 4.7);
+      doc.setFillColor(255, 247, 237); doc.rect(margin, y, contentWidth, boxHeight, 'F');
+      doc.setFillColor(...red); doc.rect(margin, y, 1.5, boxHeight, 'F');
+      doc.setTextColor(...dark); doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.text(data.customer, margin + 5, y + 6);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.text([...data.address.split('\n'), ...(data.email ? [data.email] : [])], margin + 5, y + 11);
+      y += boxHeight + 10;
+
+      doc.autoTable({
+        startY:y,
+        margin:{ left:margin, right:margin },
+        head:[['Position', 'Menge', 'Netto', 'MwSt.', 'Gesamt']],
+        body:data.lineItems.map(item => [item.desc, String(item.qty), euro.format(item.net), `${item.rate.toLocaleString('de-DE')} %`, euro.format(item.gross)]),
+        theme:'grid',
+        styles:{ font:'helvetica', fontSize:8.2, cellPadding:2.3, textColor:dark, lineColor:[234,236,240], lineWidth:0.2, valign:'top', overflow:'linebreak' },
+        headStyles:{ fillColor:red, textColor:[255,255,255], fontStyle:'bold', fontSize:7.5, halign:'left' },
+        columnStyles:{ 0:{ cellWidth:68 }, 1:{ cellWidth:19, halign:'left' }, 2:{ cellWidth:29, halign:'right' }, 3:{ cellWidth:22, halign:'right' }, 4:{ cellWidth:34, halign:'right', fontStyle:'bold' } },
+        didDrawPage: () => {}
+      });
+      y = doc.lastAutoTable.finalY + 9;
+      const totalsHeight = data.discountRate > 0 ? 31 : 23;
+      if (y + totalsHeight + 42 > pageBottom) { doc.addPage(); y = 20; }
+      const totalsX = 120, totalsW = 78;
+      function totalRow(label, value, fill, color, bold, size) {
+        doc.setFillColor(...fill); doc.rect(totalsX, y, totalsW, 7, 'F');
+        doc.setTextColor(...color); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size || 8.5);
+        doc.text(label, totalsX + 3, y + 4.7);
+        doc.text(value, totalsX + totalsW - 3, y + 4.7, { align:'right' });
+        y += 8;
+      }
+      totalRow('Zwischensumme netto', euro.format(data.netTotal), [249,250,251], dark, false);
+      if (data.discountRate > 0) totalRow(`Rabatt (${data.discountRate.toLocaleString('de-DE')} %)`, `−${euro.format(data.discountGross)}`, [255,247,237], [154,52,18], false);
+      totalRow('Mehrwertsteuer', euro.format(data.taxTotal), [249,250,251], dark, false);
+      totalRow('Gesamtbetrag', euro.format(data.grossTotal), red, [255,255,255], true, 10.5);
+      y += 8;
+      const paymentText = `${data.terms}\nBank: Musterbank · IBAN: DE12 3456 7890 1234 5678 90`;
+      const paymentLines = doc.splitTextToSize(paymentText, contentWidth - 10);
+      const paymentHeight = 9 + paymentLines.length * 4.2;
+      if (y + paymentHeight + 24 > pageBottom) { doc.addPage(); y = 20; }
+      doc.setFillColor(236,253,243); doc.rect(margin, y, contentWidth, paymentHeight, 'F');
+      doc.setFillColor(18,183,106); doc.rect(margin, y, 1.5, paymentHeight, 'F');
+      doc.setTextColor(6,118,71); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text('Zahlungsinformationen', margin + 5, y + 5);
+      doc.setTextColor(29,41,57); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.2); doc.text(paymentLines, margin + 5, y + 10);
+      y += paymentHeight + 9;
+      const footer = `${data.notes}\nPizza Express City Weingarten · Lägelerstrasse 33-1 · 88250 Weingarten · USt-IdNr.: DE414927705`;
+      const footerLines = doc.splitTextToSize(footer, contentWidth);
+      if (y + footerLines.length * 3.8 + 5 > pageBottom) { doc.addPage(); y = 20; }
+      doc.setDrawColor(208,213,221); doc.setLineWidth(0.25); doc.line(margin, y, pageWidth - margin, y);
+      doc.setTextColor(...muted); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+      doc.text(footerLines, pageWidth / 2, y + 5, { align:'center' });
+      const safeNumber = data.number.replace(/[^a-zA-Z0-9_-]/g, '_');
+      doc.save(`Rechnung_${safeNumber}.pdf`);
+    }
+
     const today = new Date(); const due = new Date(today); due.setDate(today.getDate() + 14);
     document.getElementById('date').value = today.toISOString().slice(0,10);
     document.getElementById('due').value = due.toISOString().slice(0,10);
     fields.forEach(id => document.getElementById(id).addEventListener('input', () => { clearValidation(); update(); }));
     document.getElementById('addItem').addEventListener('click', () => { itemRow(); update(); });
-    document.getElementById('printPdf').addEventListener('click', () => { update(); if (validateInvoice()) window.print(); });
+    document.getElementById('downloadPdf').addEventListener('click', generatePdf);
     window.addEventListener('resize', fitPreview);
     itemRow(); update();
   </script>
