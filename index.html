@@ -267,15 +267,13 @@
       <button class="add" type="button" id="addItem">+ Position hinzufügen</button>
 
       <div class="discount-box">
-        <label for="discount">Rabatt auf die Gesamtsumme in % (optional)</label>
+        <label for="discount">Rabatt in % (optional)</label>
         <input id="discount" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="z. B. 10" autocomplete="off">
-        <p class="discount-hint">Der Rabatt wird erst in der Rechnung berücksichtigt, wenn ein Wert größer als 0 eingetragen ist.</p>
       </div>
 
       <div class="field"><label for="remarks">Anmerkungen (optional)</label><textarea id="remarks" placeholder="z. B. Bitte bei Lieferung anrufen."></textarea></div>
       <button class="pdf" type="button" id="downloadPdf">PDF herunterladen</button>
       <div class="error-message" id="validationMessage" role="alert" aria-live="polite"></div>
-      <p class="note">Felder mit <strong>*</strong> sind Pflichtfelder. Die PDF wird direkt heruntergeladen – ohne Druckdialog, URL oder Druckdatum.</p>
     </section>
 
     <section class="panel preview-panel">
