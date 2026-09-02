@@ -20,14 +20,14 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1100px) {
             .container {
                 grid-template-columns: 1fr;
             }
@@ -36,37 +36,39 @@
         /* Formular Styles */
         .form-panel {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .form-panel h2 {
             color: #667eea;
-            margin-bottom: 25px;
-            font-size: 24px;
+            margin-bottom: 20px;
+            font-size: 22px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: #333;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .form-group input,
         .form-group textarea,
         .form-group select {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             transition: border-color 0.3s;
         }
 
@@ -79,37 +81,39 @@
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 12px;
         }
 
         .items-section {
             background: #f8f9ff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         .item-row {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr auto;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
             align-items: center;
         }
 
         .item-row input {
-            padding: 10px;
+            padding: 8px;
             border: 2px solid #e0e0e0;
             border-radius: 6px;
+            font-size: 12px;
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s;
+            font-size: 13px;
         }
 
         .btn-primary {
@@ -125,8 +129,8 @@
             background: #48bb78;
             color: white;
             width: 100%;
-            font-size: 16px;
-            margin-top: 20px;
+            font-size: 15px;
+            margin-top: 15px;
         }
 
         .btn-success:hover {
@@ -136,137 +140,58 @@
         .btn-danger {
             background: #f56565;
             color: white;
-            padding: 8px 12px;
+            padding: 6px 10px;
+            font-size: 12px;
         }
 
         .btn-add {
             background: #48bb78;
             color: white;
-            margin-top: 10px;
+            margin-top: 8px;
+            font-size: 12px;
+            padding: 8px 16px;
         }
 
         /* Rechnungsvorschau */
         .preview-panel {
             background: white;
-            padding: 40px;
+            padding: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: auto;
+            max-height: 90vh;
         }
 
         #invoice {
             background: white;
-            padding: 30px;
-            border: 1px solid #e0e0e0;
-            width: 100%;
-            max-width: 794px;
+            padding: 12mm;
+            width: 210mm;
+            height: 297mm;
             margin: 0 auto;
-            overflow: visible;
-        }
-
-        /* A4/PDF-Optimierung */
-        #invoice,
-        #invoice * {
-            box-sizing: border-box;
-        }
-
-        #invoice .items-table {
-            table-layout: fixed;
-        }
-
-        #invoice .items-table th:nth-child(1),
-        #invoice .items-table td:nth-child(1) {
-            width: 40%;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }
-
-        #invoice .items-table th:nth-child(2),
-        #invoice .items-table td:nth-child(2) {
-            width: 12%;
-        }
-
-        #invoice .items-table th:nth-child(3),
-        #invoice .items-table td:nth-child(3) {
-            width: 18%;
-        }
-
-        #invoice .items-table th:nth-child(4),
-        #invoice .items-table td:nth-child(4) {
-            width: 12%;
-        }
-
-        #invoice .items-table th:nth-child(5),
-        #invoice .items-table td:nth-child(5) {
-            width: 18%;
-        }
-
-        #invoice .invoice-header,
-        #invoice .client-section,
-        #invoice .totals-section,
-        #invoice .payment-info,
-        #invoice .footer-section {
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-
-        #invoice .items-table thead {
-            display: table-header-group;
-        }
-
-        #invoice .items-table tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-
-            .container {
-                display: block;
-                max-width: none;
-            }
-
-            .form-panel {
-                display: none;
-            }
-
-            .preview-panel {
-                padding: 0;
-                box-shadow: none;
-                border-radius: 0;
-            }
-
-            #invoice {
-                width: 210mm;
-                max-width: 210mm;
-                min-height: 297mm;
-                margin: 0;
-                border: none;
-                padding: 15mm;
-            }
+            transform-origin: top center;
+            position: relative;
+            overflow: hidden;
         }
 
         .invoice-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #667eea;
+            margin-bottom: 10mm;
+            padding-bottom: 6mm;
+            border-bottom: 2px solid #667eea;
         }
 
         .business-info h1 {
             color: #667eea;
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 16px;
+            margin-bottom: 3mm;
+            font-weight: 700;
         }
 
         .business-info p {
             color: #666;
-            font-size: 14px;
-            line-height: 1.6;
+            font-size: 8px;
+            line-height: 1.5;
         }
 
         .invoice-meta {
@@ -275,45 +200,48 @@
 
         .invoice-meta h2 {
             color: #333;
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 14px;
+            margin-bottom: 3mm;
+            font-weight: 700;
         }
 
         .invoice-meta p {
             color: #666;
-            font-size: 14px;
-            margin: 5px 0;
+            font-size: 8px;
+            margin: 1.5mm 0;
         }
 
         .client-section {
-            margin-bottom: 30px;
+            margin-bottom: 10mm;
         }
 
         .client-section h3 {
             color: #667eea;
-            font-size: 16px;
-            margin-bottom: 10px;
+            font-size: 9px;
+            margin-bottom: 2.5mm;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-weight: 700;
         }
 
         .client-info {
             background: #f8f9ff;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
+            padding: 6mm;
+            border-radius: 3mm;
+            border-left: 3px solid #667eea;
         }
 
         .client-info p {
-            margin: 5px 0;
+            margin: 2mm 0;
             color: #333;
-            font-size: 14px;
+            font-size: 8px;
+            line-height: 1.4;
         }
 
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 30px 0;
+            margin: 8mm 0;
         }
 
         .items-table thead {
@@ -322,21 +250,26 @@
         }
 
         .items-table th {
-            padding: 12px;
+            padding: 5mm;
             text-align: left;
-            font-size: 14px;
+            font-size: 8px;
             font-weight: 600;
+            text-transform: uppercase;
         }
 
         .items-table td {
-            padding: 12px;
+            padding: 5mm;
             border-bottom: 1px solid #e0e0e0;
-            font-size: 14px;
+            font-size: 8px;
             color: #333;
         }
 
-        .items-table tbody tr:hover {
-            background: #f8f9ff;
+        .items-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .items-table tbody tr:nth-child(even) {
+            background: #fafafa;
         }
 
         .text-right {
@@ -344,17 +277,17 @@
         }
 
         .totals-section {
-            margin-top: 30px;
-            padding-top: 20px;
+            margin-top: 10mm;
+            padding-top: 6mm;
             border-top: 2px solid #e0e0e0;
         }
 
         .total-row {
             display: flex;
             justify-content: space-between;
-            padding: 10px 15px;
-            margin: 5px 0;
-            border-radius: 6px;
+            padding: 4mm 6mm;
+            margin: 2mm 0;
+            border-radius: 3mm;
         }
 
         .total-row.subtotal {
@@ -368,41 +301,53 @@
         .total-row.grand-total {
             background: #667eea;
             color: white;
-            font-size: 18px;
+            font-size: 11px;
             font-weight: 700;
-        }
-
-        .footer-section {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #e0e0e0;
-            text-align: center;
-            color: #666;
-            font-size: 13px;
-        }
-
-        .footer-section p {
-            margin: 5px 0;
         }
 
         .payment-info {
             background: #e8f5e9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid #48bb78;
+            padding: 5mm;
+            border-radius: 3mm;
+            margin-top: 8mm;
+            border-left: 3px solid #48bb78;
         }
 
         .payment-info h4 {
             color: #2e7d32;
-            margin-bottom: 10px;
-            font-size: 14px;
+            margin-bottom: 3mm;
+            font-size: 8px;
+            font-weight: 600;
         }
 
         .payment-info p {
             color: #1b5e20;
-            font-size: 13px;
-            margin: 3px 0;
+            font-size: 7px;
+            margin: 1.5mm 0;
+            line-height: 1.4;
+        }
+
+        .footer-section {
+            position: absolute;
+            bottom: 10mm;
+            left: 12mm;
+            right: 12mm;
+            text-align: center;
+            color: #666;
+            font-size: 7px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 4mm;
+        }
+
+        .footer-section p {
+            margin: 2mm 0;
+            line-height: 1.4;
+        }
+
+        .footer-section .legal {
+            font-size: 6px;
+            color: #999;
+            margin-top: 3mm;
         }
     </style>
 </head>
@@ -444,7 +389,7 @@
             </div>
 
             <div class="items-section">
-                <h3 style="margin-bottom: 15px; color: #667eea;">Positionen</h3>
+                <h3 style="margin-bottom: 12px; color: #667eea; font-size: 14px;">Positionen</h3>
                 <div id="itemsContainer">
                     <div class="item-row">
                         <input type="text" class="item-desc" placeholder="Pizza Margherita" oninput="updateInvoice()">
@@ -521,7 +466,7 @@
                         <span><strong id="preview-subtotal">0,00 €</strong></span>
                     </div>
                     <div class="total-row tax">
-                        <span><strong>Mehrwertsteuer (19%)</strong></span>
+                        <span><strong>Mehrwertsteuer</strong></span>
                         <span><strong id="preview-tax">0,00 €</strong></span>
                     </div>
                     <div class="total-row grand-total">
@@ -538,9 +483,8 @@
 
                 <div class="footer-section">
                     <p id="preview-footerNotes">Vielen Dank für Ihren Besuch! Guten Appetit!</p>
-                    <p style="margin-top: 15px; font-size: 11px; color: #999;">
-                        Pizzeria Bella Napoli | Musterplatz 1 | 89073 Ulm | Deutschland<br>
-                        USt-IdNr.: DE123456789 | Steuernummer: 12345/67890
+                    <p class="legal">
+                        Pizzeria Bella Napoli | Musterplatz 1 | 89073 Ulm | Deutschland | USt-IdNr.: DE123456789 | Steuernummer: 12345/67890
                     </p>
                 </div>
             </div>
@@ -557,6 +501,21 @@
         // Initiales Update
         updateInvoice();
 
+        // Skalierung der Vorschau anpassen
+        function adjustPreviewScale() {
+            const invoice = document.getElementById('invoice');
+            const previewPanel = document.querySelector('.preview-panel');
+            const panelWidth = previewPanel.clientWidth - 40;
+            
+            // A4 Breite ist 210mm ≈ 794px bei 96dpi
+            const scale = Math.min(1, panelWidth / 794);
+            invoice.style.transform = `scale(${scale})`;
+        }
+
+        // Beim Laden und bei Fenstergröı¿½enanderung
+        window.addEventListener('load', adjustPreviewScale);
+        window.addEventListener('resize', adjustPreviewScale);
+
         function addItem() {
             const container = document.getElementById('itemsContainer');
             const newItem = document.createElement('div');
@@ -570,6 +529,7 @@
             `;
             container.appendChild(newItem);
             updateInvoice();
+            setTimeout(adjustPreviewScale, 100);
         }
 
         function removeItem(btn) {
@@ -644,66 +604,35 @@
             document.getElementById('preview-footerNotes').innerHTML = document.getElementById('footerNotes').value.replace(/\n/g, '<br>') || '';
         }
 
-        async function generatePDF() {
+        function generatePDF() {
             const element = document.getElementById('invoice');
             const invoiceNumber = document.getElementById('invoiceNumber').value || 'rechnung';
-
-            // Für die PDF-Erstellung wird die Rechnung auf eine feste
-            // A4-kompatible CSS-Breite gesetzt. Danach wird die Vorschau
-            // wieder vollständig auf ihre ursprünglichen Werte zurückgesetzt.
-            const originalWidth = element.style.width;
-            const originalMaxWidth = element.style.maxWidth;
-            const originalMargin = element.style.margin;
-
-            element.style.width = '794px';
-            element.style.maxWidth = '794px';
-            element.style.margin = '0 auto';
-
+            
+            // Temporar Transform entfernen fur sauberen Export
+            const originalTransform = element.style.transform;
+            element.style.transform = 'none';
+            
             const opt = {
-                margin: [10, 10, 10, 10],
+                margin: 0,
                 filename: `Rechnung_${invoiceNumber}.pdf`,
-                image: {
-                    type: 'jpeg',
-                    quality: 0.98
-                },
-                html2canvas: {
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
                     scale: 2,
                     useCORS: true,
-                    backgroundColor: '#ffffff',
-                    logging: false,
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: 794
+                    logging: false
                 },
-                pagebreak: {
-                    mode: ['css', 'legacy'],
-                    avoid: [
-                        '.invoice-header',
-                        '.client-section',
-                        '.items-table tr',
-                        '.totals-section',
-                        '.payment-info',
-                        '.footer-section'
-                    ]
-                },
-                jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
                     orientation: 'portrait',
                     compress: true
                 }
             };
 
-            try {
-                await html2pdf()
-                    .set(opt)
-                    .from(element)
-                    .save();
-            } finally {
-                element.style.width = originalWidth;
-                element.style.maxWidth = originalMaxWidth;
-                element.style.margin = originalMargin;
-            }
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Transform wiederherstellen
+                element.style.transform = originalTransform;
+            });
         }
     </script>
 </body>
