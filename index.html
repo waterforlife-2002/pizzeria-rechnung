@@ -56,7 +56,7 @@
     @media (max-width:520px) { .two { grid-template-columns:1fr; } .item-row { grid-template-columns:1fr 55px 82px 55px 34px; } }
 
     /* Der PDF-/Druckmodus: echte A4-Seite. Keine CSS-Skalierung, kein Screenshot, kein Abschneiden. */
-    @page { size:A4 portrait; margin:20mm; 20mm; 12mm; 12mm }
+    @page { size:A4 portrait; margin:20mm 12mm 12mm 12mm; }
     @media print {
       body { background:#fff; }
       .form-panel, .preview-label { display:none !important; }
