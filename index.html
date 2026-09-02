@@ -7,6 +7,7 @@
   <style>
     :root { --accent:#b42318; --accent-dark:#8d1b13; --ink:#202124; --muted:#667085; --line:#d0d5dd; --paper:#fff; --bg:#f2f4f7; --error:#b42318; }
     * { box-sizing:border-box; }
+    [hidden] { display:none !important; }
     body { margin:0; font-family:Arial,Helvetica,sans-serif; background:var(--bg); color:var(--ink); }
     .app { max-width:1500px; margin:0 auto; padding:24px; display:grid; grid-template-columns:minmax(340px,470px) minmax(0,1fr); gap:24px; align-items:start; }
     .panel { background:#fff; border-radius:14px; box-shadow:0 5px 22px rgba(16,24,40,.10); padding:24px; }
@@ -17,8 +18,8 @@
     input, textarea, select { width:100%; min-width:0; padding:10px; border:1px solid var(--line); border-radius:7px; font:inherit; font-size:14px; background:#fff; }
     textarea { resize:vertical; min-height:70px; }
     input:focus, textarea:focus, select:focus { outline:2px solid #fecdca; border-color:var(--accent); }
-    input.invalid, textarea.invalid, select.invalid { border-color:var(--error); outline:2px solid #fee4e2; }
-    .field { margin-bottom:13px; }
+    input.invalid, textarea.invalid { border-color:var(--error); outline:2px solid #fee4e2; }
+    .field { margin-bottom:13px; min-width:0; }
     .two { display:grid; grid-template-columns:1fr 1fr; gap:12px; min-width:0; }
     .item-editor { border:1px solid #eaecf0; border-radius:10px; padding:12px; background:#fcfcfd; }
     .item-help { margin:0 0 10px; color:var(--muted); font-size:12px; line-height:1.4; }
@@ -67,8 +68,12 @@
       h1 { font-size:21px; }
       h2 { font-size:18px; font-weight:800; }
       label { font-size:15px; font-weight:800; margin-bottom:7px; }
-      .two { grid-template-columns:1fr; gap:0; }
-      input[type="date"] { width:100%; max-width:100%; min-width:0; box-sizing:border-box; display:block; -webkit-min-logical-width:0; }
+      .two { grid-template-columns:1fr; gap:0; width:100%; }
+      .two .field { width:100%; max-width:100%; min-width:0; overflow:hidden; }
+      input[type="date"] { display:block; width:calc(100% - 1px) !important; max-width:calc(100% - 1px) !important; min-width:0 !important; -webkit-min-logical-width:0; box-sizing:border-box; line-height:1.25; overflow:hidden; }
+      input[type="date"]::-webkit-datetime-edit { padding:0; }
+      input[type="date"]::-webkit-date-and-time-value { text-align:left; min-width:0; }
+      input[type="date"]::-webkit-calendar-picker-indicator { margin:0; padding:0; }
       .item-editor { padding:10px; }
       .item-row { grid-template-columns:1fr 1fr; gap:10px; align-items:end; margin:0 0 13px; padding:12px; background:#fff; border:1px solid #eaecf0; border-radius:8px; }
       .item-row:last-child { margin-bottom:0; }
@@ -116,7 +121,7 @@
       <div class="field"><label for="notes">Hinweis / Fußzeile</label><textarea id="notes">Vielen Dank für Ihre Bestellung. Guten Appetit!</textarea></div>
       <button class="print" type="button" id="printPdf">PDF erstellen / drucken</button>
       <div class="error-message" id="validationMessage" role="alert" aria-live="polite"></div>
-      <p class="note">Felder mit <strong>*</strong> sind Pflichtfelder. Im Druckfenster als Ziel <strong>„Als PDF speichern“</strong> auswählen. Bei vielen Positionen wird automatisch eine weitere vollständige Seite erzeugt.</p>
+      <p class="note">Felder mit <strong>*</strong> sind Pflichtfelder. Im Druckfenster als Ziel <strong>„Als PDF speichern“</strong> auswählen. Dort bitte zusätzlich <strong>„Kopf- und Fußzeilen“</strong> deaktivieren.</p>
     </section>
 
     <section class="panel preview-panel">
@@ -129,7 +134,7 @@
           </header>
           <section class="recipient"><p class="recipient-title">Rechnung an</p><div class="customer-box"><strong id="p-customer">—</strong><br><span id="p-address">—</span><br><span id="p-email"></span></div></section>
           <table><thead><tr><th>Position</th><th>Menge</th><th class="right">Netto</th><th class="right">MwSt.</th><th class="right">Gesamt</th></tr></thead><tbody id="p-items"></tbody></table>
-          <section class="totals"><div class="total-line"><span>Zwischensumme netto</span><b id="p-net">0,00 €</b></div><div class="total-line" id="discountLine" hidden><span id="p-discount-label">Rabatt</span><b id="p-discount">-0,00 €</b></div><div class="total-line"><span>Mehrwertsteuer</span><b id="p-tax">0,00 €</b></div><div class="total-line final"><span>Gesamtbetrag</span><span id="p-total">0,00 €</span></div></section>
+          <section class="totals"><div class="total-line"><span>Zwischensumme netto</span><b id="p-net">0,00 €</b></div><div class="total-line discount" id="discountLine" hidden><span id="p-discount-label">Rabatt</span><b id="p-discount">−0,00 €</b></div><div class="total-line"><span>Mehrwertsteuer</span><b id="p-tax">0,00 €</b></div><div class="total-line final"><span>Gesamtbetrag</span><span id="p-total">0,00 €</span></div></section>
           <section class="payment"><strong>Zahlungsinformationen</strong><span id="p-terms"></span><br>Bank: Musterbank · IBAN: DE12 3456 7890 1234 5678 90</section>
           <footer class="invoice-footer"><div id="p-notes"></div><div style="margin-top:7px">Pizza Express City Weingarten · Lägelerstrasse 33-1 · 88250 Weingarten · USt-IdNr.: DE414927705</div></footer>
         </article>
@@ -144,57 +149,24 @@
     const items = document.getElementById('items');
     let itemCounter = 0;
 
-    function escapeHtml(value) {
-      const el = document.createElement('span');
-      el.textContent = value || '';
-      return el.innerHTML;
-    }
+    function escapeHtml(value) { const el = document.createElement('span'); el.textContent = value || ''; return el.innerHTML; }
+    function textWithBreaks(value) { return (value || '—').replace(/\n/g, '<br>'); }
 
-    function textWithBreaks(value) {
-      return (value || '—').replace(/\n/g, '<br>');
-    }
-
-    function itemRow(data = {}) {
+    function itemRow() {
       const id = ++itemCounter;
-      const desc = data.desc || '';
-      const qty = data.qty ?? 1;
-      const gross = data.gross || '';
-      const tax = Number(data.tax) === 7 ? 7 : 19;
       const row = document.createElement('div');
       row.className = 'item-row';
       row.innerHTML = `
-        <div class="item-field"><label for="item-desc-${id}">Position <span class="required-mark">*</span></label><input id="item-desc-${id}" class="desc" name="item-description-${id}" type="text" placeholder="z. B. Pizza Margherita" autocomplete="off" value="${escapeHtml(desc)}"></div>
-        <div class="item-field"><label for="item-qty-${id}">Menge <span class="required-mark">*</span></label><input id="item-qty-${id}" class="qty" name="item-quantity-${id}" type="number" min="1" step="1" inputmode="numeric" autocomplete="off" value="${qty}"></div>
-        <div class="item-field"><label for="item-gross-${id}">Brutto € <span class="required-mark">*</span></label><input id="item-gross-${id}" class="gross" name="item-gross-${id}" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="z. B. 12,50" autocomplete="off" value="${gross}"></div>
-        <div class="item-field"><label for="item-tax-${id}">MwSt.</label><select id="item-tax-${id}" class="tax" name="item-tax-${id}" autocomplete="off" aria-label="Mehrwertsteuersatz"><option value="7" ${tax === 7 ? 'selected' : ''}>7 %</option><option value="19" ${tax === 19 ? 'selected' : ''}>19 %</option></select></div>
+        <div class="item-field"><label for="item-desc-${id}">Position <span class="required-mark">*</span></label><input id="item-desc-${id}" class="desc" name="item-description-${id}" type="text" placeholder="z. B. Pizza Margherita" autocomplete="off"></div>
+        <div class="item-field"><label for="item-qty-${id}">Menge <span class="required-mark">*</span></label><input id="item-qty-${id}" class="qty" name="item-quantity-${id}" type="number" min="1" step="1" inputmode="numeric" autocomplete="off" value="1"></div>
+        <div class="item-field"><label for="item-gross-${id}">Brutto € <span class="required-mark">*</span></label><input id="item-gross-${id}" class="gross" name="item-gross-${id}" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="z. B. 12,50" autocomplete="off"></div>
+        <div class="item-field"><label for="item-tax-${id}">MwSt.</label><select id="item-tax-${id}" class="tax" name="item-tax-${id}" autocomplete="off" aria-label="Mehrwertsteuersatz"><option value="7">7 %</option><option value="19" selected>19 %</option></select></div>
         <button class="remove" type="button" title="Position löschen">× <span class="remove-text">Position löschen</span></button>`;
-      row.querySelectorAll('input, select').forEach(el => {
-        el.addEventListener('input', update);
-        el.addEventListener('change', update);
-      });
-      row.querySelector('.remove').addEventListener('click', () => {
-        if (items.children.length > 1) { row.remove(); update(); }
-      });
+      row.querySelectorAll('input, select').forEach(el => { el.addEventListener('input', update); el.addEventListener('change', update); });
+      row.querySelector('.remove').addEventListener('click', () => { if (items.children.length > 1) { row.remove(); update(); } });
       items.appendChild(row);
-      // Werte nach dem Einfügen ausdrücklich setzen: verhindert Wiederherstellen/Autofill auf mobilen Browsern.
-      row.querySelector('.desc').value = '';
-      row.querySelector('.qty').value = '1';
-      row.querySelector('.gross').value = '';
-      row.querySelector('.tax').value = '19';
-      if (data.desc || data.gross || data.qty !== undefined || data.tax !== undefined) {
-        row.querySelector('.desc').value = desc;
-        row.querySelector('.qty').value = qty;
-        row.querySelector('.gross').value = gross;
-        row.querySelector('.tax').value = String(tax);
-      }
-      requestAnimationFrame(() => {
-        if (!data.desc && !data.gross && data.qty === undefined && data.tax === undefined) {
-          row.querySelector('.desc').value = '';
-          row.querySelector('.qty').value = '1';
-          row.querySelector('.gross').value = '';
-          row.querySelector('.tax').value = '19';
-        }
-      });
+      // Nach dem Einfügen nochmals leeren, damit mobile Browser keine frühere Position wiederherstellen.
+      requestAnimationFrame(() => { row.querySelector('.desc').value = ''; row.querySelector('.qty').value = '1'; row.querySelector('.gross').value = ''; row.querySelector('.tax').value = '19'; });
     }
 
     function update() {
@@ -206,10 +178,8 @@
       document.getElementById('p-email').textContent = document.getElementById('email').value;
       document.getElementById('p-terms').textContent = document.getElementById('terms').value;
       document.getElementById('p-notes').innerHTML = textWithBreaks(escapeHtml(document.getElementById('notes').value));
-
       let netBeforeDiscount = 0, taxBeforeDiscount = 0, grossBeforeDiscount = 0;
-      const tbody = document.getElementById('p-items');
-      tbody.innerHTML = '';
+      const tbody = document.getElementById('p-items'); tbody.innerHTML = '';
       [...items.querySelectorAll('.item-row')].forEach(row => {
         const desc = row.querySelector('.desc').value || '—';
         const qty = Number(row.querySelector('.qty').value) || 0;
@@ -218,38 +188,26 @@
         const lineGross = qty * grossUnit;
         const lineNet = rate > 0 ? lineGross / (1 + rate / 100) : lineGross;
         const lineTax = lineGross - lineNet;
-        netBeforeDiscount += lineNet;
-        taxBeforeDiscount += lineTax;
-        grossBeforeDiscount += lineGross;
+        netBeforeDiscount += lineNet; taxBeforeDiscount += lineTax; grossBeforeDiscount += lineGross;
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${escapeHtml(desc)}</td><td>${qty}</td><td class="right">${euro.format(lineNet)}</td><td class="right">${rate.toLocaleString('de-DE')} %</td><td class="right"><b>${euro.format(lineGross)}</b></td>`;
         tbody.appendChild(tr);
       });
-
-      const discountInput = document.getElementById('discount');
-      const rawDiscount = Number(discountInput.value);
+      const rawDiscount = Number(document.getElementById('discount').value);
       const discountRate = Number.isFinite(rawDiscount) ? Math.min(100, Math.max(0, rawDiscount)) : 0;
       const discountGross = grossBeforeDiscount * discountRate / 100;
       const factor = 1 - discountRate / 100;
-      const netTotal = netBeforeDiscount * factor;
-      const taxTotal = taxBeforeDiscount * factor;
-      const grossTotal = grossBeforeDiscount * factor;
+      document.getElementById('p-net').textContent = euro.format(netBeforeDiscount * factor);
+      document.getElementById('p-tax').textContent = euro.format(taxBeforeDiscount * factor);
+      document.getElementById('p-total').textContent = euro.format(grossBeforeDiscount * factor);
       const discountLine = document.getElementById('discountLine');
-      discountLine.hidden = discountRate <= 0;
-      document.getElementById('p-net').textContent = euro.format(netTotal);
-      document.getElementById('p-tax').textContent = euro.format(taxTotal);
-      document.getElementById('p-total').textContent = euro.format(grossTotal);
+      discountLine.hidden = discountRate === 0;
       document.getElementById('p-discount-label').textContent = `Rabatt (${discountRate.toLocaleString('de-DE')} %)`;
       document.getElementById('p-discount').textContent = `−${euro.format(discountGross)}`;
       fitPreview();
     }
 
-    function clearValidation() {
-      document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
-      document.getElementById('validationMessage').classList.remove('visible');
-      document.getElementById('validationMessage').textContent = '';
-    }
-
+    function clearValidation() { document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid')); const msg = document.getElementById('validationMessage'); msg.classList.remove('visible'); msg.textContent = ''; }
     function validateInvoice() {
       clearValidation();
       const errors = [];
@@ -257,54 +215,27 @@
       const address = document.getElementById('address');
       if (!customer.value.trim()) { customer.classList.add('invalid'); errors.push('Bitte Besteller / Kunde eingeben.'); }
       if (!address.value.trim()) { address.classList.add('invalid'); errors.push('Bitte die Adresse eingeben.'); }
-      let hasCompleteItem = false;
-      [...items.querySelectorAll('.item-row')].forEach(row => {
-        const desc = row.querySelector('.desc');
-        const qty = row.querySelector('.qty');
-        const gross = row.querySelector('.gross');
-        const complete = desc.value.trim() && Number(qty.value) >= 1 && Number(gross.value) > 0;
-        if (complete) hasCompleteItem = true;
-      });
-      if (!hasCompleteItem) {
-        const firstRow = items.querySelector('.item-row');
-        if (firstRow) firstRow.querySelectorAll('.desc, .qty, .gross').forEach(el => el.classList.add('invalid'));
-        errors.push('Bitte mindestens eine vollständige Position mit Bezeichnung, Menge und Brutto-Preis eingeben.');
-      }
-      if (errors.length) {
-        const message = document.getElementById('validationMessage');
-        message.textContent = errors.join(' ');
-        message.classList.add('visible');
-        const firstInvalid = document.querySelector('.invalid');
-        if (firstInvalid) firstInvalid.focus();
-        return false;
-      }
+      const completeItem = [...items.querySelectorAll('.item-row')].some(row => row.querySelector('.desc').value.trim() && Number(row.querySelector('.qty').value) >= 1 && Number(row.querySelector('.gross').value) > 0);
+      if (!completeItem) { const first = items.querySelector('.item-row'); if (first) first.querySelectorAll('.desc, .qty, .gross').forEach(el => el.classList.add('invalid')); errors.push('Bitte mindestens eine vollständige Position mit Bezeichnung, Menge und Brutto-Preis eingeben.'); }
+      if (errors.length) { const msg = document.getElementById('validationMessage'); msg.textContent = errors.join(' '); msg.classList.add('visible'); document.querySelector('.invalid')?.focus(); return false; }
       return true;
     }
 
     function fitPreview() {
       const scaleBox = document.getElementById('invoiceScale');
       const invoice = document.getElementById('invoice');
-      if (window.innerWidth <= 600) {
-        const scale = scaleBox.clientWidth / 794;
-        invoice.style.transform = `scale(${scale})`;
-        scaleBox.style.height = `${invoice.offsetHeight * scale}px`;
-      } else {
-        invoice.style.transform = 'none';
-        scaleBox.style.height = `${invoice.offsetHeight}px`;
-      }
+      if (window.innerWidth <= 600) { const scale = scaleBox.clientWidth / 794; invoice.style.transform = `scale(${scale})`; scaleBox.style.height = `${invoice.offsetHeight * scale}px`; }
+      else { invoice.style.transform = 'none'; scaleBox.style.height = `${invoice.offsetHeight}px`; }
     }
 
-    const today = new Date();
-    const due = new Date(today);
-    due.setDate(today.getDate() + 14);
+    const today = new Date(); const due = new Date(today); due.setDate(today.getDate() + 14);
     document.getElementById('date').value = today.toISOString().slice(0,10);
     document.getElementById('due').value = due.toISOString().slice(0,10);
     fields.forEach(id => document.getElementById(id).addEventListener('input', () => { clearValidation(); update(); }));
     document.getElementById('addItem').addEventListener('click', () => { itemRow(); update(); });
     document.getElementById('printPdf').addEventListener('click', () => { update(); if (validateInvoice()) window.print(); });
     window.addEventListener('resize', fitPreview);
-    itemRow();
-    update();
+    itemRow(); update();
   </script>
 </body>
 </html>
