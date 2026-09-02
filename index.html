@@ -254,8 +254,8 @@
     placeholder="kunde@beispiel.de"
     autocomplete="off">
 </div>
-
       <h2>Positionen</h2>
+      <p class="item-help">Bitte den <strong>Brutto-Einzelpreis</strong> eingeben. Netto und Mehrwertsteuer werden automatisch berechnet. Mindestens eine vollständige Position ist erforderlich.</p>
       <div class="item-editor" id="items"></div>
       <button class="add" type="button" id="addItem">+ Position hinzufügen</button>
 
@@ -265,10 +265,7 @@
         <p class="discount-hint">Der Rabatt wird erst in der Rechnung berücksichtigt, wenn ein Wert größer als 0 eingetragen ist.</p>
       </div>
 
-      <div class="field field-yellow">
-        <label for="remarks">Anmerkungen (optional)</label>
-        <textarea id="remarks" placeholder="z. B. Bitte bei Lieferung anrufen."></textarea>
-      </div>
+      <div class="field"><label for="remarks">Anmerkungen (optional)</label><textarea id="remarks" placeholder="z. B. Bitte bei Lieferung anrufen."></textarea></div>
       <button class="pdf" type="button" id="downloadPdf">PDF herunterladen</button>
       <div class="error-message" id="validationMessage" role="alert" aria-live="polite"></div>
       <p class="note">Felder mit <strong>*</strong> sind Pflichtfelder. Die PDF wird direkt heruntergeladen – ohne Druckdialog, URL oder Druckdatum.</p>
