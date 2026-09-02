@@ -877,9 +877,10 @@
 
       document.getElementById('discountLine').hidden = data.discountRate === 0;
       document.getElementById('p-discount-label').textContent =
-        `Rabatt (${data.discountRate.toLocaleString('de-DE')} %)`;
-      document.getElementById('p-discount').textContent =
-        `−${euro.format(data.discountGross)}`;
+  `Rabatt (${data.discountRate.toLocaleString('de-DE')} %)`;
+
+document.getElementById('p-discount').textContent =
+  `- ${euro.format(data.discountGross)}`;
 
       document.getElementById('remarksBlock').hidden = !data.remarks;
       document.getElementById('p-remarks').innerHTML = textWithBreaks(escapeHtml(data.remarks));
@@ -1090,41 +1091,67 @@
 
       y = doc.lastAutoTable.finalY + 9;
 
-      const totalsHeight = data.discountRate > 0 ? 31 : 23;
-      if (y + totalsHeight + 55 > pageBottom) {
-        doc.addPage();
-        y = 20;
-      }
+// Summenblock: drei Zeilen ohne Rabatt, vier Zeilen mit Rabatt.
+// Jede Zeile ist 7 mm hoch, mit 1 mm Abstand darunter.
+const totalsRowCount = data.discountRate > 0 ? 4 : 3;
+const totalsHeight = totalsRowCount * 8 - 1;
 
-      const totalsX = 120;
-      const totalsW = 78;
+if (y + totalsHeight + 55 > pageBottom) {
+  doc.addPage();
+  y = 20;
+}
 
-      function totalRow(label, value, fill, color, bold, size) {
-        doc.setFillColor(...fill);
-        doc.rect(totalsX, y, totalsW, 7, 'F');
-        doc.setTextColor(...color);
-        doc.setFont('helvetica', bold ? 'bold' : 'normal');
-        doc.setFontSize(size || 8.5);
-        doc.text(label, totalsX + 3, y + 4.7);
-        doc.text(value, totalsX + totalsW - 3, y + 4.7, { align:'right' });
-        y += 8;
-      }
+const totalsX = 120;
+const totalsW = 78;
 
-      totalRow('Zwischensumme netto', euro.format(data.netTotal), [249,250,251], dark, false);
+function totalRow(label, value, fill, color, bold = false, size = 8.5) {
+  doc.setFillColor(...fill);
+  doc.rect(totalsX, y, totalsW, 7, 'F');
 
-      if (data.discountRate > 0) {
-        totalRow(
-          `Rabatt (${data.discountRate.toLocaleString('de-DE')} %)`,
-          `−${euro.format(data.discountGross)}`,
-          [255,247,237],
-          [154,52,18],
-          false
-        );
-      }
+  doc.setTextColor(...color);
+  doc.setFont('helvetica', bold ? 'bold' : 'normal');
+  doc.setFontSize(size);
 
-      totalRow('Mehrwertsteuer', euro.format(data.taxTotal), [249,250,251], dark, false);
-      totalRow('Gesamtbetrag', euro.format(data.grossTotal), red, [255,255,255], true, 10.5);
-      y += 8;
+  doc.text(label, totalsX + 3, y + 4.7);
+  doc.text(value, totalsX + totalsW - 3, y + 4.7, { align:'right' });
+
+  y += 8;
+}
+
+totalRow(
+  'Zwischensumme netto',
+  euro.format(data.netTotal),
+  [249,250,251],
+  dark
+);
+
+if (data.discountRate > 0) {
+  totalRow(
+    `Rabatt (${data.discountRate.toLocaleString('de-DE')} %)`,
+    `- ${euro.format(data.discountGross)}`,
+    [255,247,237],
+    [154,52,18]
+  );
+}
+
+totalRow(
+  'Mehrwertsteuer',
+  euro.format(data.taxTotal),
+  [249,250,251],
+  dark
+);
+
+totalRow(
+  'Gesamtbetrag',
+  euro.format(data.grossTotal),
+  red,
+  [255,255,255],
+  true,
+  10.5
+);
+
+y += 8;
+
 
       // Anmerkungen
       if (data.remarks) {
