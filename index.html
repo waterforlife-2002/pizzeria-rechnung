@@ -17,11 +17,15 @@
     * { box-sizing:border-box; }
     [hidden] { display:none !important; }
     body {
-      margin:0;
-      font-family:Arial,Helvetica,sans-serif;
-      color:var(--ink);
-      background:linear-gradient(135deg,#f6f8fb 0%,#eef3f7 100%);
-    }
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(180,35,24,.16), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(23,92,211,.17), transparent 38%),
+    linear-gradient(135deg, #d9e3eb 0%, #c6d5df 48%, #b5c9d6 100%);
+}
+
     .app {
       max-width:1500px;
       margin:0 auto;
@@ -114,10 +118,66 @@
     .payment { margin-top:24px; padding:12px 14px; background:var(--green-bg); border-left:4px solid #12b76a; }
     .payment strong { display:block; color:var(--green); margin-bottom:3px; }
     .invoice-footer { margin-top:30px; padding-top:12px; border-top:1px solid var(--line); text-align:center; color:var(--muted); }
+/* Farbige Bereiche im Formular */
+.field-blue {
+  padding:14px;
+  border:1px solid #b9d9ee;
+  border-radius:12px;
+  background:#eff8ff;
+}
+
+.field-blue input,
+.field-blue textarea {
+  background:rgba(255,255,255,.94);
+  border-color:#b9d9ee;
+}
+
+.field-yellow {
+  padding:14px;
+  border:1px solid var(--yellow-line);
+  border-radius:12px;
+  background:var(--yellow-bg);
+}
+
+.field-yellow input {
+  background:rgba(255,255,255,.86);
+  border-color:#e5c45d;
+}
+
+.item-editor {
+  border:1px solid #475467;
+  border-radius:12px;
+  padding:14px;
+  background:linear-gradient(145deg,#344054 0%,#273444 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.item-help {
+  color:#e4e7ec;
+}
+
+.item-row {
+  padding:9px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:9px;
+  background:rgba(255,255,255,.08);
+}
+
+.item-row input,
+.item-row select {
+  background:#ffffff;
+  border-color:#d0d5dd;
+}
 
     @media (max-width:950px) { .app { grid-template-columns:1fr; padding:16px; } .panel { padding:22px; } }
     @media (max-width:600px) {
-      body { background:linear-gradient(155deg,#fff4ed 0%,#f8fafc 42%,#edf4f7 100%); }
+      body {
+  background:
+    radial-gradient(circle at top left, rgba(180,35,24,.18), transparent 38%),
+    radial-gradient(circle at bottom right, rgba(23,92,211,.17), transparent 42%),
+    linear-gradient(155deg,#dce7ee 0%,#c6d7e1 48%,#b7cad6 100%);
+}
+
       .app { padding:12px; gap:18px; }
       .panel { padding:18px; border-radius:15px; box-shadow:0 9px 25px rgba(16,24,40,.09); }
       h1 { justify-content:center; font-size:22px; margin-bottom:28px; }
@@ -149,14 +209,51 @@
   <main class="app">
     <section class="panel form-panel">
       <h1><span>🍕</span><span>Pizza City Rechnung</span></h1>
-      <div class="field"><label for="number">Rechnungsnummer</label><input id="number" value="2026-001" autocomplete="off"></div>
+      <div class="field field-blue">
+  <label for="number">Rechnungsnummer</label>
+  <input id="number" value="2026-001" autocomplete="off">
+</div>
+
       <div class="two">
-        <div class="field"><label for="date">Rechnungsdatum</label><input id="date" type="date"></div>
-        <div class="field"><label for="due">Fälligkeitsdatum</label><input id="due" type="date"></div>
-      </div>
-      <div class="field"><label for="customer">Besteller / Kunde <span class="required-mark">*</span></label><input id="customer" placeholder="Name oder Firma" required autocomplete="off"></div>
-      <div class="field"><label for="address">Adresse <span class="required-mark">*</span></label><textarea id="address" placeholder="Straße und Hausnummer&#10;PLZ Ort" required autocomplete="off"></textarea></div>
-      <div class="field"><label for="email">E-Mail (optional)</label><input id="email" type="email" placeholder="kunde@beispiel.de" autocomplete="off"></div>
+  <div class="field field-blue">
+    <label for="date">Rechnungsdatum</label>
+    <input id="date" type="date">
+  </div>
+
+  <div class="field field-blue">
+    <label for="due">Fälligkeitsdatum</label>
+    <input id="due" type="date">
+  </div>
+</div>
+
+      <div class="field field-blue">
+  <label for="customer">
+    Besteller / Kunde <span class="required-mark">*</span>
+  </label>
+  <input
+    id="customer"
+    placeholder="Name oder Firma"
+    required
+    autocomplete="off">
+</div>
+      <div class="field field-blue">
+  <label for="address">
+    Adresse <span class="required-mark">*</span>
+  </label>
+  <textarea
+    id="address"
+    placeholder="Straße und Hausnummer&#10;PLZ Ort"
+    required
+    autocomplete="off"></textarea>
+</div>
+      <div class="field field-yellow">
+  <label for="email">E-Mail (optional)</label>
+  <input
+    id="email"
+    type="email"
+    placeholder="kunde@beispiel.de"
+    autocomplete="off">
+</div>
 
       <h2>Positionen</h2>
       <p class="item-help">Bitte den <strong>Brutto-Einzelpreis</strong> eingeben. Netto und Mehrwertsteuer werden automatisch berechnet. Mindestens eine vollständige Position ist erforderlich.</p>
