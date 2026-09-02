@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rechnungsgenerator – Pizzeria</title>
+  <title>Rechnungsgenerator – Pizza Express City Weingarten</title>
   <style>
     :root { --accent:#b42318; --accent-dark:#8d1b13; --ink:#202124; --muted:#667085; --line:#d0d5dd; --paper:#fff; --bg:#f2f4f7; }
     * { box-sizing:border-box; }
@@ -13,14 +13,15 @@
     h1 { font-size:22px; margin:0 0 20px; color:var(--accent); }
     h2 { font-size:16px; margin:22px 0 10px; color:#344054; }
     label { display:block; font-size:13px; font-weight:700; margin:0 0 5px; color:#344054; }
-    input, textarea { width:100%; padding:10px; border:1px solid var(--line); border-radius:7px; font:inherit; font-size:14px; }
+    input, textarea, select { width:100%; padding:10px; border:1px solid var(--line); border-radius:7px; font:inherit; font-size:14px; background:#fff; }
     textarea { resize:vertical; min-height:70px; }
-    input:focus, textarea:focus { outline:2px solid #fecdca; border-color:var(--accent); }
+    input:focus, textarea:focus, select:focus { outline:2px solid #fecdca; border-color:var(--accent); }
     .field { margin-bottom:13px; }
     .two { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .item-editor { border:1px solid #eaecf0; border-radius:10px; padding:12px; background:#fcfcfd; }
-    .item-row { display:grid; grid-template-columns:2fr .65fr 1fr .65fr 36px; gap:7px; margin-bottom:8px; align-items:center; }
-    .item-row input { min-width:0; padding:8px; font-size:13px; }
+    .item-help { margin:0 0 10px; color:var(--muted); font-size:12px; line-height:1.4; }
+    .item-row { display:grid; grid-template-columns:2fr .65fr 1fr .8fr 36px; gap:7px; margin-bottom:8px; align-items:center; }
+    .item-row input, .item-row select { min-width:0; padding:8px; font-size:13px; }
     button { border:0; cursor:pointer; border-radius:7px; padding:10px 14px; font:700 14px Arial,sans-serif; }
     .remove { background:#fee4e2; color:#b42318; padding:8px; }
     .add { margin-top:3px; color:#175cd3; background:#eff8ff; }
@@ -28,7 +29,6 @@
     .print:hover { background:var(--accent-dark); }
     .note { color:var(--muted); font-size:12px; line-height:1.45; margin:10px 0 0; }
 
-    /* Bildschirmvorschau: nie zusammenschieben. Bei wenig Platz kann horizontal gescrollt werden. */
     .preview-panel { padding:18px; overflow:auto; }
     .preview-label { margin:0 0 12px; font-weight:700; color:#344054; }
     #invoice { width:794px; min-height:1123px; margin:0 auto; padding:45px; background:var(--paper); color:#1d2939; box-shadow:0 1px 5px rgba(16,24,40,.18); }
@@ -53,17 +53,15 @@
     .invoice-footer { margin-top:30px; padding-top:12px; border-top:1px solid var(--line); text-align:center; color:var(--muted); }
 
     @media (max-width:950px) { .app { grid-template-columns:1fr; padding:14px; } .panel { padding:18px; } }
-    @media (max-width:520px) { .two { grid-template-columns:1fr; } .item-row { grid-template-columns:1fr 55px 82px 55px 34px; } }
+    @media (max-width:520px) { .two { grid-template-columns:1fr; } .item-row { grid-template-columns:1fr 52px 78px 62px 34px; } }
 
-    /* Der PDF-/Druckmodus: echte A4-Seite. Keine CSS-Skalierung, kein Screenshot, kein Abschneiden. */
     @page { size:A4 portrait; margin:20mm 12mm 12mm 12mm; }
     @media print {
       body { background:#fff; }
       .form-panel, .preview-label { display:none !important; }
       .app, .preview-panel { display:block; margin:0; padding:0; box-shadow:none; overflow:visible; }
       #invoice { width:auto; min-height:0; margin:0; padding:0; box-shadow:none; }
-      .invoice-head { break-inside:avoid; }
-      .recipient, .totals, .payment, .invoice-footer { break-inside:avoid; }
+      .invoice-head, .recipient, .totals, .payment, .invoice-footer { break-inside:avoid; }
       thead { display:table-header-group; }
       tr { break-inside:avoid; }
     }
@@ -82,12 +80,13 @@
       <div class="field"><label for="address">Adresse</label><textarea id="address" placeholder="Straße und Hausnummer&#10;PLZ Ort"></textarea></div>
       <div class="field"><label for="email">E-Mail (optional)</label><input id="email" type="email" placeholder="kunde@beispiel.de"></div>
       <h2>Positionen</h2>
+      <p class="item-help">Bitte den <strong>Brutto-Einzelpreis</strong> eingeben. Für jede Position wählst du anschließend 7 % oder 19 % MwSt.; Netto und Steuer werden automatisch berechnet.</p>
       <div class="item-editor" id="items"></div>
       <button class="add" type="button" id="addItem">+ Position hinzufügen</button>
       <div class="field" style="margin-top:20px"><label for="terms">Zahlungshinweis</label><textarea id="terms">Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen ohne Abzug.</textarea></div>
       <div class="field"><label for="notes">Hinweis / Fußzeile</label><textarea id="notes">Vielen Dank für Ihre Bestellung. Guten Appetit!</textarea></div>
       <button class="print" type="button" id="printPdf">PDF erstellen / drucken</button>
-      <p class="note">Im Druckfenster bitte als Ziel <strong>„Als PDF speichern“</strong> auswählen. Das ist absichtlich der Browser-Druck: Er erzeugt eine vollständige A4-PDF und schneidet lange Rechnungen nicht ab. Bei vielen Positionen wird automatisch eine zweite Seite erzeugt.</p>
+      <p class="note">Im Druckfenster als Ziel <strong>„Als PDF speichern“</strong> auswählen. Bei vielen Positionen wird automatisch eine weitere vollständige Seite erzeugt.</p>
     </section>
 
     <section class="panel preview-panel">
@@ -104,7 +103,7 @@
         <table><thead><tr><th>Position</th><th>Menge</th><th class="right">Netto</th><th class="right">MwSt.</th><th class="right">Gesamt</th></tr></thead><tbody id="p-items"></tbody></table>
         <section class="totals"><div class="total-line"><span>Zwischensumme netto</span><b id="p-net">0,00 €</b></div><div class="total-line"><span>Mehrwertsteuer</span><b id="p-tax">0,00 €</b></div><div class="total-line final"><span>Gesamtbetrag</span><span id="p-total">0,00 €</span></div></section>
         <section class="payment"><strong>Zahlungsinformationen</strong><span id="p-terms"></span><br>Bank: Musterbank · IBAN: DE12 3456 7890 1234 5678 90</section>
-        <footer class="invoice-footer"><div id="p-notes"></div><div style="margin-top:7px">Pizza Express City Weingarten · Lägelerstrasse 33-1 · 88250 Weingarten · USt-IdNr.: DE414927705 ·</div></footer>
+        <footer class="invoice-footer"><div id="p-notes"></div><div style="margin-top:7px">Pizza Express City Weingarten · Lägelerstrasse 33-1 · 88250 Weingarten · USt-IdNr.: DE414927705</div></footer>
       </article>
     </section>
   </main>
@@ -115,11 +114,20 @@
     const fields = ['number','date','due','customer','address','email','terms','notes'];
     const items = document.getElementById('items');
 
-    function itemRow(data = { desc:'', qty:1, price:'', tax:19 }) {
+    function itemRow(data = { desc:'', qty:1, gross:'', tax:19 }) {
       const row = document.createElement('div');
       row.className = 'item-row';
-      row.innerHTML = `<input class="desc" placeholder="z. B. Pizza Margherita" value="${data.desc}"><input class="qty" type="number" min="0" step="1" value="${data.qty}"><input class="price" type="number" min="0" step="0.01" placeholder="Netto €" value="${data.price}"><input class="tax" type="number" min="0" step="0.1" value="${data.tax}"><button class="remove" type="button" title="Position löschen">×</button>`;
-      row.querySelectorAll('input').forEach(x => x.addEventListener('input', update));
+      row.innerHTML = `
+        <input class="desc" placeholder="z. B. Pizza Margherita" value="${data.desc}">
+        <input class="qty" type="number" min="0" step="1" value="${data.qty}">
+        <input class="gross" type="number" min="0" step="0.01" placeholder="Brutto €" value="${data.gross}">
+        <select class="tax" aria-label="Mehrwertsteuersatz">
+          <option value="7" ${Number(data.tax) === 7 ? 'selected' : ''}>7 %</option>
+          <option value="19" ${Number(data.tax) === 19 ? 'selected' : ''}>19 %</option>
+        </select>
+        <button class="remove" type="button" title="Position löschen">×</button>`;
+      row.querySelectorAll('input, select').forEach(x => x.addEventListener('input', update));
+      row.querySelector('.tax').addEventListener('change', update);
       row.querySelector('.remove').addEventListener('click', () => { if (items.children.length > 1) { row.remove(); update(); } });
       items.appendChild(row);
     }
@@ -136,31 +144,45 @@
       document.getElementById('p-email').textContent = document.getElementById('email').value;
       document.getElementById('p-terms').textContent = document.getElementById('terms').value;
       document.getElementById('p-notes').innerHTML = textWithBreaks(safe(document.getElementById('notes').value));
-      let net = 0, taxTotal = 0;
-      const tbody = document.getElementById('p-items'); tbody.innerHTML = '';
+
+      let netTotal = 0, taxTotal = 0, grossTotal = 0;
+      const tbody = document.getElementById('p-items');
+      tbody.innerHTML = '';
+
       [...items.querySelectorAll('.item-row')].forEach(row => {
         const desc = row.querySelector('.desc').value || '—';
         const qty = Number(row.querySelector('.qty').value) || 0;
-        const price = Number(row.querySelector('.price').value) || 0;
-        const rate = Number(row.querySelector('.tax').value) || 0;
-        const lineNet = qty * price, lineTax = lineNet * rate / 100;
-        net += lineNet; taxTotal += lineTax;
+        const grossUnit = Number(row.querySelector('.gross').value) || 0;
+        const rate = Number(row.querySelector('.tax').value);
+
+        // Der eingegebene Preis ist brutto. Netto = Brutto / (1 + MwSt.-Satz).
+        const lineGross = qty * grossUnit;
+        const lineNet = lineGross / (1 + rate / 100);
+        const lineTax = lineGross - lineNet;
+        netTotal += lineNet;
+        taxTotal += lineTax;
+        grossTotal += lineGross;
+
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${safe(desc)}</td><td>${qty}</td><td class="right">${euro.format(lineNet)}</td><td class="right">${rate.toLocaleString('de-DE')} %</td><td class="right"><b>${euro.format(lineNet + lineTax)}</b></td>`;
+        tr.innerHTML = `<td>${safe(desc)}</td><td>${qty}</td><td class="right">${euro.format(lineNet)}</td><td class="right">${rate.toLocaleString('de-DE')} %</td><td class="right"><b>${euro.format(lineGross)}</b></td>`;
         tbody.appendChild(tr);
       });
-      document.getElementById('p-net').textContent = euro.format(net);
+
+      document.getElementById('p-net').textContent = euro.format(netTotal);
       document.getElementById('p-tax').textContent = euro.format(taxTotal);
-      document.getElementById('p-total').textContent = euro.format(net + taxTotal);
+      document.getElementById('p-total').textContent = euro.format(grossTotal);
     }
 
-    const today = new Date(); const due = new Date(today); due.setDate(today.getDate() + 14);
+    const today = new Date();
+    const due = new Date(today);
+    due.setDate(today.getDate() + 14);
     document.getElementById('date').value = today.toISOString().slice(0,10);
     document.getElementById('due').value = due.toISOString().slice(0,10);
     fields.forEach(id => document.getElementById(id).addEventListener('input', update));
     document.getElementById('addItem').addEventListener('click', () => { itemRow(); update(); });
     document.getElementById('printPdf').addEventListener('click', () => { update(); window.print(); });
-    itemRow({ desc:'', qty:1, price:'', tax:19 }); update();
+    itemRow({ desc:'', qty:1, gross:'', tax:19 });
+    update();
   </script>
 </body>
 </html>
