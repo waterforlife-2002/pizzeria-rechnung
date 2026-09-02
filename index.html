@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizzeria Rechnung</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Formular Styles */
+        .form-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .form-panel h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .items-section {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .item-row input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+            width: 100%;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+            padding: 8px 12px;
+        }
+
+        .btn-add {
+            background: #48bb78;
+            color: white;
+            margin-top: 10px;
+        }
+
+        /* Rechnungsvorschau */
+        .preview-panel {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        #invoice {
+            background: white;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .business-info h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .business-info p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .invoice-meta {
+            text-align: right;
+        }
+
+        .invoice-meta h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .invoice-meta p {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .client-section {
+            margin-bottom: 30px;
+        }
+
+        .client-section h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .client-info {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .client-info p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+
+        .items-table thead {
+            background: #667eea;
+            color: white;
+        }
+
+        .items-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .items-table tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .totals-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+        }
+
+        .total-row.subtotal {
+            background: #f8f9ff;
+        }
+
+        .total-row.tax {
+            background: #fff3cd;
+        }
+
+        .total-row.grand-total {
+            background: #667eea;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .footer-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .footer-section p {
+            margin: 5px 0;
+        }
+
+        .payment-info {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #48bb78;
+        }
+
+        .payment-info h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .payment-info p {
+            color: #1b5e20;
+            font-size: 13px;
+            margin: 3px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Eingabeformular -->
+        <div class="form-panel">
+            <h2>📝 Rechnungsdaten eingeben</h2>
+            
+            <div class="form-group">
+                <label>Rechnungsnummer</label>
+                <input type="text" id="invoiceNumber" value="2026-001" oninput="updateInvoice()">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Rechnungsdatum</label>
+                    <input type="date" id="invoiceDate" oninput="updateInvoice()">
+                </div>
+                <div class="form-group">
+                    <label>Falligkeitsdatum</label>
+                    <input type="date" id="dueDate" oninput="updateInvoice()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Kundenname</label>
+                <input type="text" id="customerName" placeholder="Max Mustermann" oninput="updateInvoice()">
+            </div>
+
+            <div class="form-group">
+                <label>Kundenadresse</label>
+                <textarea id="customerAddress" rows="3" placeholder="Musterstr. 123&#10;12345 Musterstadt" oninput="updateInvoice()"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Kunden-E-Mail</label>
+                <input type="email" id="customerEmail" placeholder="kunde@email.de" oninput="updateInvoice()">
+            </div>
+
+            <div class="items-section">
+                <h3 style="margin-bottom: 15px; color: #667eea;">Positionen</h3>
+                <div id="itemsContainer">
+                    <div class="item-row">
+                        <input type="text" class="item-desc" placeholder="Pizza Margherita" oninput="updateInvoice()">
+                        <input type="number" class="item-qty" placeholder="Menge" value="1" min="1" oninput="updateInvoice()">
+                        <input type="number" class="item-price" placeholder="Preis (€)" step="0.01" oninput="updateInvoice()">
+                        <input type="number" class="item-tax" placeholder="MwSt. %" value="19" oninput="updateInvoice()">
+                        <button class="btn btn-danger" onclick="removeItem(this)">✕</button>
+                    </div>
+                </div>
+                <button class="btn btn-add" onclick="addItem()">+ Position hinzufügen</button>
+            </div>
+
+            <div class="form-group">
+                <label>Zahlungsbedingungen</label>
+                <textarea id="paymentTerms" rows="2" placeholder="Zahlung innerhalb von 14 Tagen ohne Abzug." oninput="updateInvoice()"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Fußızeile / Hinweise</label>
+                <textarea id="footerNotes" rows="2" placeholder="Vielen Dank für Ihren Besuch!&#10;Guten Appetit!" oninput="updateInvoice()"></textarea>
+            </div>
+
+            <button class="btn btn-success" onclick="generatePDF()">
+                📄 Rechnung als PDF herunterladen
+            </button>
+        </div>
+
+        <!-- Rechnungsvorschau -->
+        <div class="preview-panel">
+            <div id="invoice">
+                <div class="invoice-header">
+                    <div class="business-info">
+                        <h1>🍕 Pizzeria Bella Napoli</h1>
+                        <p>Musterplatz 1<br>
+                        89073 Ulm, Deutschland<br>
+                        Tel: +49 123 456789<br>
+                        E-Mail: info@pizzeria-bellanapoli.de</p>
+                    </div>
+                    <div class="invoice-meta">
+                        <h2>RECHNUNG</h2>
+                        <p><strong>Nr.</strong> <span id="preview-invoiceNumber">2026-001</span></p>
+                        <p><strong>Datum:</strong> <span id="preview-invoiceDate">02.09.2026</span></p>
+                        <p><strong>Fallig bis:</strong> <span id="preview-dueDate">16.09.2026</span></p>
+                    </div>
+                </div>
+
+                <div class="client-section">
+                    <h3>Rechnung an</h3>
+                    <div class="client-info">
+                        <p><strong id="preview-customerName">Max Mustermann</strong></p>
+                        <p id="preview-customerAddress">Musterstr. 123<br>12345 Musterstadt</p>
+                        <p id="preview-customerEmail">kunde@email.de</p>
+                    </div>
+                </div>
+
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Menge</th>
+                            <th>Einzelpreis</th>
+                            <th>MwSt.</th>
+                            <th class="text-right">Gesamt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="preview-items">
+                        <!-- Wird dynamisch gefuellt -->
+                    </tbody>
+                </table>
+
+                <div class="totals-section">
+                    <div class="total-row subtotal">
+                        <span><strong>Zwischensumme (netto)</strong></span>
+                        <span><strong id="preview-subtotal">0,00 €</strong></span>
+                    </div>
+                    <div class="total-row tax">
+                        <span><strong>Mehrwertsteuer (19%)</strong></span>
+                        <span><strong id="preview-tax">0,00 €</strong></span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span><strong>Gesamtsumme (brutto)</strong></span>
+                        <span><strong id="preview-total">0,00 €</strong></span>
+                    </div>
+                </div>
+
+                <div class="payment-info">
+                    <h4>💳 Zahlungsinformationen</h4>
+                    <p>Bitte überweisen Sie den Gesamtbetrag innerhalb von 14 Tagen auf unser Konto.</p>
+                    <p>Bank: Musterbank | IBAN: DE12 3456 7890 1234 5678 90</p>
+                </div>
+
+                <div class="footer-section">
+                    <p id="preview-footerNotes">Vielen Dank für Ihren Besuch! Guten Appetit!</p>
+                    <p style="margin-top: 15px; font-size: 11px; color: #999;">
+                        Pizzeria Bella Napoli | Musterplatz 1 | 89073 Ulm | Deutschland<br>
+                        USt-IdNr.: DE123456789 | Steuernummer: 12345/67890
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Setze heutiges Datum als Standard
+        document.getElementById('invoiceDate').valueAsDate = new Date();
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 14);
+        document.getElementById('dueDate').valueAsDate = dueDate;
+
+        // Initiales Update
+        updateInvoice();
+
+        function addItem() {
+            const container = document.getElementById('itemsContainer');
+            const newItem = document.createElement('div');
+            newItem.className = 'item-row';
+            newItem.innerHTML = `
+                <input type="text" class="item-desc" placeholder="Pizza..." oninput="updateInvoice()">
+                <input type="number" class="item-qty" placeholder="Menge" value="1" min="1" oninput="updateInvoice()">
+                <input type="number" class="item-price" placeholder="Preis (€)" step="0.01" oninput="updateInvoice()">
+                <input type="number" class="item-tax" placeholder="MwSt. %" value="19" oninput="updateInvoice()">
+                <button class="btn btn-danger" onclick="removeItem(this)">✕</button>
+            `;
+            container.appendChild(newItem);
+            updateInvoice();
+        }
+
+        function removeItem(btn) {
+            const container = document.getElementById('itemsContainer');
+            if (container.children.length > 1) {
+                btn.parentElement.remove();
+                updateInvoice();
+            } else {
+                alert('Mindestens eine Position ist erforderlich!');
+            }
+        }
+
+        function updateInvoice() {
+            // Meta-Daten
+            document.getElementById('preview-invoiceNumber').textContent = document.getElementById('invoiceNumber').value || '---';
+            
+            const invoiceDate = document.getElementById('invoiceDate').value;
+            const dueDate = document.getElementById('dueDate').value;
+            
+            if (invoiceDate) {
+                const dateObj = new Date(invoiceDate);
+                document.getElementById('preview-invoiceDate').textContent = dateObj.toLocaleDateString('de-DE');
+            }
+            
+            if (dueDate) {
+                const dateObj = new Date(dueDate);
+                document.getElementById('preview-dueDate').textContent = dateObj.toLocaleDateString('de-DE');
+            }
+
+            // Kundendaten
+            document.getElementById('preview-customerName').textContent = document.getElementById('customerName').value || '---';
+            document.getElementById('preview-customerAddress').innerHTML = document.getElementById('customerAddress').value.replace(/\n/g, '<br>') || '---';
+            document.getElementById('preview-customerEmail').textContent = document.getElementById('customerEmail').value || '';
+
+            // Positionen
+            const items = document.querySelectorAll('.item-row');
+            const previewItems = document.getElementById('preview-items');
+            previewItems.innerHTML = '';
+
+            let subtotal = 0;
+            let totalTax = 0;
+
+            items.forEach(item => {
+                const desc = item.querySelector('.item-desc').value || '---';
+                const qty = parseFloat(item.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(item.querySelector('.item-price').value) || 0;
+                const tax = parseFloat(item.querySelector('.item-tax').value) || 0;
+
+                const itemTotal = qty * price;
+                const itemTax = itemTotal * (tax / 100);
+
+                subtotal += itemTotal;
+                totalTax += itemTax;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${desc}</td>
+                    <td>${qty}</td>
+                    <td>${price.toFixed(2)} €</td>
+                    <td>${tax}%</td>
+                    <td class="text-right"><strong>${(itemTotal + itemTax).toFixed(2)} €</strong></td>
+                `;
+                previewItems.appendChild(row);
+            });
+
+            // Summen
+            document.getElementById('preview-subtotal').textContent = subtotal.toFixed(2).replace('.', ',') + ' €';
+            document.getElementById('preview-tax').textContent = totalTax.toFixed(2).replace('.', ',') + ' €';
+            document.getElementById('preview-total').textContent = (subtotal + totalTax).toFixed(2).replace('.', ',') + ' €';
+
+            // Fußzeile
+            document.getElementById('preview-footerNotes').innerHTML = document.getElementById('footerNotes').value.replace(/\n/g, '<br>') || '';
+        }
+
+        function generatePDF() {
+            const element = document.getElementById('invoice');
+            const invoiceNumber = document.getElementById('invoiceNumber').value || 'rechnung';
+            
+            const opt = {
+                margin: 10,
+                filename: `Rechnung_${invoiceNumber}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
