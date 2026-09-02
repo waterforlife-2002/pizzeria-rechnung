@@ -13,25 +13,29 @@
     h1 { font-size:22px; margin:0 0 20px; color:var(--accent); }
     h2 { font-size:16px; margin:22px 0 10px; color:#344054; }
     label { display:block; font-size:13px; font-weight:700; margin:0 0 5px; color:#344054; }
-    input, textarea, select { width:100%; padding:10px; border:1px solid var(--line); border-radius:7px; font:inherit; font-size:14px; background:#fff; }
+    input, textarea, select { width:100%; min-width:0; padding:10px; border:1px solid var(--line); border-radius:7px; font:inherit; font-size:14px; background:#fff; }
     textarea { resize:vertical; min-height:70px; }
     input:focus, textarea:focus, select:focus { outline:2px solid #fecdca; border-color:var(--accent); }
     .field { margin-bottom:13px; }
-    .two { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:12px; min-width:0; }
     .item-editor { border:1px solid #eaecf0; border-radius:10px; padding:12px; background:#fcfcfd; }
     .item-help { margin:0 0 10px; color:var(--muted); font-size:12px; line-height:1.4; }
-    .item-row { display:grid; grid-template-columns:2fr .65fr 1fr .8fr 36px; gap:7px; margin-bottom:8px; align-items:center; }
-    .item-row input, .item-row select { min-width:0; padding:8px; font-size:13px; }
+    .item-row { display:grid; grid-template-columns:2fr .65fr 1fr .8fr 36px; gap:7px; margin-bottom:8px; align-items:end; }
+    .item-field { min-width:0; }
+    .item-field label { display:none; }
+    .item-row input, .item-row select { padding:8px; font-size:13px; }
     button { border:0; cursor:pointer; border-radius:7px; padding:10px 14px; font:700 14px Arial,sans-serif; }
-    .remove { background:#fee4e2; color:#b42318; padding:8px; }
+    .remove { height:35px; background:#fee4e2; color:#b42318; padding:8px; }
     .add { margin-top:3px; color:#175cd3; background:#eff8ff; }
     .print { margin-top:18px; width:100%; background:var(--accent); color:#fff; font-size:15px; }
     .print:hover { background:var(--accent-dark); }
     .note { color:var(--muted); font-size:12px; line-height:1.45; margin:10px 0 0; }
 
+    /* A4-Vorschau auf Desktop */
     .preview-panel { padding:18px; overflow:auto; }
     .preview-label { margin:0 0 12px; font-weight:700; color:#344054; }
-    #invoice { width:794px; min-height:1123px; margin:0 auto; padding:45px; background:var(--paper); color:#1d2939; box-shadow:0 1px 5px rgba(16,24,40,.18); }
+    .invoice-scale { width:794px; height:1123px; margin:0 auto; }
+    #invoice { width:794px; min-height:1123px; padding:45px; background:var(--paper); color:#1d2939; box-shadow:0 1px 5px rgba(16,24,40,.18); transform-origin:top left; }
     .invoice-head { display:flex; justify-content:space-between; gap:22px; padding-bottom:19px; border-bottom:3px solid var(--accent); }
     .company-name { color:var(--accent); font-size:25px; font-weight:800; line-height:1.15; margin:0 0 9px; }
     .company-data, .meta, .customer-box, .payment, .invoice-footer { font-size:12px; line-height:1.5; }
@@ -53,14 +57,34 @@
     .invoice-footer { margin-top:30px; padding-top:12px; border-top:1px solid var(--line); text-align:center; color:var(--muted); }
 
     @media (max-width:950px) { .app { grid-template-columns:1fr; padding:14px; } .panel { padding:18px; } }
-    @media (max-width:520px) { .two { grid-template-columns:1fr; } .item-row { grid-template-columns:1fr 52px 78px 62px 34px; } }
 
+    /* Smartphone: Positionen als gut lesbare Karte, keine gequetschte Zeile. */
+    @media (max-width:600px) {
+      .app { padding:10px; gap:14px; }
+      .panel { padding:15px; border-radius:10px; }
+      h1 { font-size:20px; }
+      .two { grid-template-columns:1fr; gap:0; }
+      .item-editor { padding:10px; }
+      .item-row { grid-template-columns:1fr 1fr; gap:10px; align-items:end; margin:0 0 13px; padding:12px; background:#fff; border:1px solid #eaecf0; border-radius:8px; }
+      .item-row:last-child { margin-bottom:0; }
+      .item-field:first-child { grid-column:1 / -1; }
+      .item-field label { display:block; margin-bottom:4px; font-size:11px; }
+      .item-row input, .item-row select { min-height:40px; padding:8px; font-size:14px; }
+      .remove { grid-column:1 / -1; width:100%; height:auto; padding:9px; }
+      .preview-panel { overflow:hidden; padding:12px; }
+      .preview-label { font-size:13px; }
+      .invoice-scale { width:100%; height:auto; margin:0; overflow:hidden; }
+      #invoice { margin:0; }
+    }
+
+    /* Ausdruck/PDF: echte A4-Seite – Bildschirm-Verkleinerung wird beim Drucken aufgehoben. */
     @page { size:A4 portrait; margin:20mm 12mm 12mm 12mm; }
     @media print {
       body { background:#fff; }
       .form-panel, .preview-label { display:none !important; }
       .app, .preview-panel { display:block; margin:0; padding:0; box-shadow:none; overflow:visible; }
-      #invoice { width:auto; min-height:0; margin:0; padding:0; box-shadow:none; }
+      .invoice-scale { display:contents; width:auto !important; height:auto !important; overflow:visible; }
+      #invoice { width:auto !important; min-height:0; margin:0; padding:0; box-shadow:none; transform:none !important; }
       .invoice-head, .recipient, .totals, .payment, .invoice-footer { break-inside:avoid; }
       thead { display:table-header-group; }
       tr { break-inside:avoid; }
@@ -80,7 +104,7 @@
       <div class="field"><label for="address">Adresse</label><textarea id="address" placeholder="Straße und Hausnummer&#10;PLZ Ort"></textarea></div>
       <div class="field"><label for="email">E-Mail (optional)</label><input id="email" type="email" placeholder="kunde@beispiel.de"></div>
       <h2>Positionen</h2>
-      <p class="item-help">Bitte den <strong>Brutto-Einzelpreis</strong> eingeben. Für jede Position wählst du anschließend 7 % oder 19 % MwSt.; Netto und Steuer werden automatisch berechnet.</p>
+      <p class="item-help">Bitte den <strong>Brutto-Einzelpreis</strong> eingeben. Netto und Mehrwertsteuer werden automatisch berechnet.</p>
       <div class="item-editor" id="items"></div>
       <button class="add" type="button" id="addItem">+ Position hinzufügen</button>
       <div class="field" style="margin-top:20px"><label for="terms">Zahlungshinweis</label><textarea id="terms">Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen ohne Abzug.</textarea></div>
@@ -91,20 +115,19 @@
 
     <section class="panel preview-panel">
       <p class="preview-label">Vorschau (A4)</p>
-      <article id="invoice">
-        <header class="invoice-head">
-          <div>
-            <p class="company-name">Pizza Express City Weingarten</p>
-            <div class="company-data">Lägelerstrasse 33-1<br>88250 Weingarten<br>Tel.: 0751-5692645</div>
-          </div>
-          <div class="meta"><p class="meta-title">RECHNUNG</p><div><b>Nr.:</b> <span id="p-number"></span></div><div><b>Datum:</b> <span id="p-date"></span></div><div><b>Fällig:</b> <span id="p-due"></span></div></div>
-        </header>
-        <section class="recipient"><p class="recipient-title">Rechnung an</p><div class="customer-box"><strong id="p-customer">—</strong><br><span id="p-address">—</span><br><span id="p-email"></span></div></section>
-        <table><thead><tr><th>Position</th><th>Menge</th><th class="right">Netto</th><th class="right">MwSt.</th><th class="right">Gesamt</th></tr></thead><tbody id="p-items"></tbody></table>
-        <section class="totals"><div class="total-line"><span>Zwischensumme netto</span><b id="p-net">0,00 €</b></div><div class="total-line"><span>Mehrwertsteuer</span><b id="p-tax">0,00 €</b></div><div class="total-line final"><span>Gesamtbetrag</span><span id="p-total">0,00 €</span></div></section>
-        <section class="payment"><strong>Zahlungsinformationen</strong><span id="p-terms"></span><br>Bank: Musterbank · IBAN: DE12 3456 7890 1234 5678 90</section>
-        <footer class="invoice-footer"><div id="p-notes"></div><div style="margin-top:7px">Pizza Express City Weingarten · Lägelerstrasse 33-1 · 88250 Weingarten · USt-IdNr.: DE414927705</div></footer>
-      </article>
+      <div class="invoice-scale" id="invoiceScale">
+        <article id="invoice">
+          <header class="invoice-head">
+            <div><p class="company-name">Pizza Express City Weingarten</p><div class="company-data">Lägelerstrasse 33-1<br>88250 Weingarten<br>Tel.: 0751-5692645</div></div>
+            <div class="meta"><p class="meta-title">RECHNUNG</p><div><b>Nr.:</b> <span id="p-number"></span></div><div><b>Datum:</b> <span id="p-date"></span></div><div><b>Fällig:</b> <span id="p-due"></span></div></div>
+          </header>
+          <section class="recipient"><p class="recipient-title">Rechnung an</p><div class="customer-box"><strong id="p-customer">—</strong><br><span id="p-address">—</span><br><span id="p-email"></span></div></section>
+          <table><thead><tr><th>Position</th><th>Menge</th><th class="right">Netto</th><th class="right">MwSt.</th><th class="right">Gesamt</th></tr></thead><tbody id="p-items"></tbody></table>
+          <section class="totals"><div class="total-line"><span>Zwischensumme netto</span><b id="p-net">0,00 €</b></div><div class="total-line"><span>Mehrwertsteuer</span><b id="p-tax">0,00 €</b></div><div class="total-line final"><span>Gesamtbetrag</span><span id="p-total">0,00 €</span></div></section>
+          <section class="payment"><strong>Zahlungsinformationen</strong><span id="p-terms"></span><br>Bank: Musterbank · IBAN: DE12 3456 7890 1234 5678 90</section>
+          <footer class="invoice-footer"><div id="p-notes"></div><div style="margin-top:7px">Pizza Express City Weingarten · Lägelerstrasse 33-1 · 88250 Weingarten · USt-IdNr.: DE414927705</div></footer>
+        </article>
+      </div>
     </section>
   </main>
 
@@ -118,14 +141,11 @@
       const row = document.createElement('div');
       row.className = 'item-row';
       row.innerHTML = `
-        <input class="desc" placeholder="z. B. Pizza Margherita" value="${data.desc}">
-        <input class="qty" type="number" min="0" step="1" value="${data.qty}">
-        <input class="gross" type="number" min="0" step="0.01" placeholder="Brutto €" value="${data.gross}">
-        <select class="tax" aria-label="Mehrwertsteuersatz">
-          <option value="7" ${Number(data.tax) === 7 ? 'selected' : ''}>7 %</option>
-          <option value="19" ${Number(data.tax) === 19 ? 'selected' : ''}>19 %</option>
-        </select>
-        <button class="remove" type="button" title="Position löschen">×</button>`;
+        <div class="item-field"><label>Position</label><input class="desc" placeholder="z. B. Pizza Margherita" value="${data.desc}"></div>
+        <div class="item-field"><label>Menge</label><input class="qty" type="number" min="0" step="1" value="${data.qty}"></div>
+        <div class="item-field"><label>Brutto €</label><input class="gross" type="number" min="0" step="0.01" placeholder="Brutto €" value="${data.gross}"></div>
+        <div class="item-field"><label>MwSt.</label><select class="tax" aria-label="Mehrwertsteuersatz"><option value="7" ${Number(data.tax) === 7 ? 'selected' : ''}>7 %</option><option value="19" ${Number(data.tax) === 19 ? 'selected' : ''}>19 %</option></select></div>
+        <button class="remove" type="button" title="Position löschen">× <span class="remove-text">Position löschen</span></button>`;
       row.querySelectorAll('input, select').forEach(x => x.addEventListener('input', update));
       row.querySelector('.tax').addEventListener('change', update);
       row.querySelector('.remove').addEventListener('click', () => { if (items.children.length > 1) { row.remove(); update(); } });
@@ -144,43 +164,47 @@
       document.getElementById('p-email').textContent = document.getElementById('email').value;
       document.getElementById('p-terms').textContent = document.getElementById('terms').value;
       document.getElementById('p-notes').innerHTML = textWithBreaks(safe(document.getElementById('notes').value));
-
       let netTotal = 0, taxTotal = 0, grossTotal = 0;
-      const tbody = document.getElementById('p-items');
-      tbody.innerHTML = '';
-
+      const tbody = document.getElementById('p-items'); tbody.innerHTML = '';
       [...items.querySelectorAll('.item-row')].forEach(row => {
         const desc = row.querySelector('.desc').value || '—';
         const qty = Number(row.querySelector('.qty').value) || 0;
         const grossUnit = Number(row.querySelector('.gross').value) || 0;
         const rate = Number(row.querySelector('.tax').value);
-
-        // Der eingegebene Preis ist brutto. Netto = Brutto / (1 + MwSt.-Satz).
         const lineGross = qty * grossUnit;
         const lineNet = lineGross / (1 + rate / 100);
         const lineTax = lineGross - lineNet;
-        netTotal += lineNet;
-        taxTotal += lineTax;
-        grossTotal += lineGross;
-
+        netTotal += lineNet; taxTotal += lineTax; grossTotal += lineGross;
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${safe(desc)}</td><td>${qty}</td><td class="right">${euro.format(lineNet)}</td><td class="right">${rate.toLocaleString('de-DE')} %</td><td class="right"><b>${euro.format(lineGross)}</b></td>`;
         tbody.appendChild(tr);
       });
-
       document.getElementById('p-net').textContent = euro.format(netTotal);
       document.getElementById('p-tax').textContent = euro.format(taxTotal);
       document.getElementById('p-total').textContent = euro.format(grossTotal);
+      fitPreview();
     }
 
-    const today = new Date();
-    const due = new Date(today);
-    due.setDate(today.getDate() + 14);
+    function fitPreview() {
+      const scaleBox = document.getElementById('invoiceScale');
+      const invoice = document.getElementById('invoice');
+      if (window.innerWidth <= 600) {
+        const scale = scaleBox.clientWidth / 794;
+        invoice.style.transform = `scale(${scale})`;
+        scaleBox.style.height = `${invoice.offsetHeight * scale}px`;
+      } else {
+        invoice.style.transform = 'none';
+        scaleBox.style.height = `${invoice.offsetHeight}px`;
+      }
+    }
+
+    const today = new Date(); const due = new Date(today); due.setDate(today.getDate() + 14);
     document.getElementById('date').value = today.toISOString().slice(0,10);
     document.getElementById('due').value = due.toISOString().slice(0,10);
     fields.forEach(id => document.getElementById(id).addEventListener('input', update));
     document.getElementById('addItem').addEventListener('click', () => { itemRow(); update(); });
     document.getElementById('printPdf').addEventListener('click', () => { update(); window.print(); });
+    window.addEventListener('resize', fitPreview);
     itemRow({ desc:'', qty:1, gross:'', tax:19 });
     update();
   </script>
